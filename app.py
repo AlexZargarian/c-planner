@@ -111,7 +111,6 @@ def main():
           border-radius: 8px !important;
           padding: 0.5em 0.75em !important;
           color: black !important;
-          caret-color: black !important; /* Ensure cursor is black */
         }
 
         /* Also make sure the container around inputs is transparent */
@@ -148,11 +147,6 @@ def main():
         footer a {
           color: white !important;
         }
-
-        /* Additional rule to ensure cursor is black in all input fields */
-        input, textarea {
-          caret-color: black !important;
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -162,7 +156,7 @@ def main():
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
-    # 5) Dispatch to the appropriate viewww
+    # 5) Dispatch to the appropriate view
     if st.session_state.page == "login":
         login_page()
     elif st.session_state.page == "signup":
