@@ -9,5 +9,5 @@ def authenticate(email: str, password: str) -> bool:
     row = cursor.fetchone()
     cursor.close()
     conn.close()
-
+##
     return bool(row and bcrypt.verify(password, row["password_hash"]))
