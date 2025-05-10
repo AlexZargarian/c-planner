@@ -1,12 +1,48 @@
+# app.py
 import streamlit as st
-from views.login import login_page
+import base64
+from pathlib import Path
+from views.login  import login_page
 from views.signup import signup_page
 from views.gemini import gemini_page
 
+def get_image_as_base64(path: str) -> str:
+    """Read an image file and return its base64-encoded contents."""
+    return base64.b64encode(Path(path).read_bytes()).decode()
 
 def main():
+    # 1) Page config must come first
     st.set_page_config(page_title="My App", layout="centered")
 
+    # 2) Inject header-image only, now doubled in size
+    image_path = "/Users/alex/PycharmProjects/chat/img/ChatGPT Image May 10, 2025, 08_48_16 PM.png"
+    if Path(image_path).exists():
+        img_b64 = get_image_as_base64(image_path)
+        st.markdown(f"""
+            <style>
+              /* Make header bar taller */
+              [data-testid="stHeader"] {{
+                position: relative;
+                height: 80px !important;
+              }}
+              /* Place and size the logo at twice its original dimensions */
+              [data-testid="stHeader"]::before {{
+                content: "";
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                width: 80px;
+                height: 80px;
+                background-image: url("data:image/png;base64,{img_b64}");
+                background-size: contain;
+                background-repeat: no-repeat;
+                transform: translateY(-50%);
+                z-index: 1000;
+              }}
+            </style>
+        """, unsafe_allow_html=True)
+
+    # 3) Your existing global CSS (unchanged)
     st.markdown(
         """
         <style>
@@ -33,33 +69,38 @@ def main():
         }
 
         /* Make sure header elements are white */
-        [data-testid="stHeader"] button,
+        [data-testid="stHeader"] button, 
         [data-testid="stHeader"] span,
         [data-testid="stHeader"] svg {
           color: white !important;
         }
 
-        /* Black text for most text elements, including links */
-        .main p, .main span, .main label, .main div,
+        /* Black text for ALL text elements except header and footer */
+        .main p, .main span, .main label, .main div, 
         .stMarkdown, .stMarkdown p, .stText, .stMarkdown span,
-        a { /* Targeting link elements */
+        input, textarea, .stTextInput, .stTextArea {
           color: black !important;
         }
 
         /* Explicitly target input labels to ensure they're black */
-        .stTextInput label, .stTextArea label,
+        .stTextInput label, .stTextArea label, 
         [data-testid="stTextInput"] label,
         .css-pkbazv, .css-10trblm, .st-be, .st-bq, .st-br, .st-bs, .st-bt {
           color: black !important;
         }
 
         /* Make sure all input text is black */
-        .stTextInput input,
+        .stTextInput input, 
         .stTextArea textarea {
           color: black !important;
         }
 
-        /* Set the caret (cursor) color to black for text inputs and textareas */
+        /* Light page titles - blue */
+        h1 {
+          color: #548CA5 !important;
+        }
+
+        /* Transparent text & password inputs with improved specificity */
         .stTextInput > div > div > input,
         .stTextInput > div > div > textarea,
         [data-testid="stTextInput"] input,
@@ -70,11 +111,10 @@ def main():
           border-radius: 8px !important;
           padding: 0.5em 0.75em !important;
           color: black !important;
-          caret-color: black !important;
         }
 
         /* Also make sure the container around inputs is transparent */
-        .stTextInput > div,
+        .stTextInput > div, 
         .stTextInput > div > div,
         [data-testid="stTextInput"] > div,
         [data-testid="stTextInput"] > div > div {
@@ -112,18 +152,17 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # Initialize session state for page navigation
+    # 4) Initialize navigation state
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
-    # Route to the appropriate page based on the session state
+    # 5) Dispatch to the appropriate view
     if st.session_state.page == "login":
         login_page()
     elif st.session_state.page == "signup":
         signup_page()
     else:
         gemini_page()
-
 
 if __name__ == "__main__":
     main()
