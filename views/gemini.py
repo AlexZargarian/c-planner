@@ -1,68 +1,125 @@
-# views/gemini.py
+import io
 import streamlit as st
+import PyPDF2
 
+from api_logic.gemini_api import process_pdf_with_gemini  # import your API logic
+
+def extract_text_from_pdf(uploaded_file) -> str:
+    """Extract raw text from an uploaded PDF."""
+    try:
+        reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception as e:
+        st.error(f"Error extracting text from PDF: {e}")
+        return ""
 
 def gemini_page():
-    questions = [
-        "1. Which faculty are you from?",
-        "2. What year are you in (e.g., 2nd year)?",
-        "3. Are there any specific courses you would like to take?",
-        "4. Are there any instructors you want to avoid?",
-        "5. Are there any classes you definitely do not want?",
-        "6. At what times do you prefer to have classes (are evenings okay)?",
-        "7. How many classes would you like to take this term?",
-        "8. Do you prefer more classes on MWF or TTH?"
-    ]
-    n = len(questions)
+    """Main questionnaire page with PDF→Gemini→Text‐area on question #1."""
 
-    # 1) Init current question index
+    # ─── CSS for styling inputs, notifications & uploader ─────────────
+    st.markdown("""
+    <style>
+    /* Text inputs & areas */
+    .stTextInput input, .stTextArea textarea {
+        background-color: white !important;
+        color: black !important;
+    }
+    /* Notifications (success, error, info, warning) */
+    .stSuccess, .stError, .stWarning, .stInfo, .stException,
+    div.stAlert, [data-baseweb="notification"] div {
+        color: black !important;
+    }
+    /* FileUploader container & button */
+    div[data-testid="stFileUploader"] {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #ccc !important;
+        padding: 10px !important;
+    }
+    div[data-testid="stFileUploader"] button {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #999 !important;
+    }
+    /* Uploaded file name & size */
+    div[data-testid="stFileUploader"] span,
+    div[data-testid="stFileUploader"] p {
+        background-color: white !important;
+        color: black !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ─── Define your questions ───────────────────────────────────────
+    questions = [
+        "1. Please insert the classes you have taken:",
+        "2. Which faculty are you from?",
+        "3. What year are you in (e.g., 2nd year)?",
+        "4. Are there any specific courses you would like to take?",
+        "5. Are there any instructors you want to avoid?",
+        "6. Are there any classes you definitely do not want?",
+        "7. At what times do you prefer to have classes (are evenings okay)?",
+        "8. How many classes would you like to take this term?",
+        "9. Do you prefer more classes on MWF or TTH?"
+    ]
+    total_q = len(questions)
+
+    # ─── Session-state init ───────────────────────────────────────────
     if "current_q" not in st.session_state:
         st.session_state.current_q = 0
-
-    # Initialize answers dictionary if it doesn't exist
     if "answers" not in st.session_state:
         st.session_state.answers = {}
 
-    curr = st.session_state.current_q
-
-    # Always show questions (no summary screen)
-    # Ensure curr is within valid range
-    curr = min(curr, n - 1)
-
-    key = f"answer_{curr}"
-
-    # Initialize answer slot if missing
+    curr = min(st.session_state.current_q, total_q - 1)
+    key  = f"answer_{curr}"
     if key not in st.session_state:
-        # Try to get from saved answers
         st.session_state[key] = st.session_state.answers.get(curr, "")
 
-    # Show the question with the existing answer pre-populated
-    user_input = st.text_input(questions[curr], key=key)
+    # ─── Show current question ────────────────────────────────────────
+    st.write(questions[curr])
 
-    # Save the answer to our persistent answers dictionary
-    st.session_state.answers[curr] = user_input
+    # ─── Q1: PDF uploader + processing ──────────────────────────────
+    if curr == 0:
+        def _on_upload():
+            pdf = st.session_state.uploaded_file
+            if pdf is not None:
+                with st.spinner("Processing PDF…"):
+                    raw     = extract_text_from_pdf(pdf)
+                    cleaned = process_pdf_with_gemini(raw)
+                    st.session_state[key]       = cleaned
+                    st.session_state.answers[0] = cleaned
+                    st.success(f"✅ Processed {pdf.name}")
 
-    # Navigation buttons
-    back, nxt = st.columns([1, 1])
+        st.file_uploader(
+            "Upload your transcript (PDF)",
+            type="pdf",
+            key="uploaded_file",
+            on_change=_on_upload
+        )
 
-    if curr > 0 and back.button("Back", key=f"back_{curr}"):
-        # Save current answer before going back
-        st.session_state.answers[curr] = st.session_state[key]
+        user_text = st.text_area(
+            "Your classes (edit if needed):",
+            key=key,
+            height=200
+        )
+        st.session_state.answers[0] = user_text
+
+    else:
+        # ─── Other questions ────────────────────────────────────────
+        answer = st.text_input("Your answer:", key=key)
+        st.session_state.answers[curr] = answer
+
+    # ─── Navigation buttons ─────────────────────────────────────────
+    back_col, next_col = st.columns(2)
+    if curr > 0 and back_col.button("Back", key=f"back_{curr}"):
         st.session_state.current_q = curr - 1
-
-    # Only show Submit button if not on last question
-    if curr < n - 1:
-        if nxt.button("Submit", key=f"next_{curr}"):
-            # Save current answer before going forward
-            st.session_state.answers[curr] = st.session_state[key]
+    if curr < total_q - 1:
+        if next_col.button("Submit", key=f"next_{curr}"):
             st.session_state.current_q = curr + 1
     else:
-        # On the last question, show Finish button but it doesn't do anything
-        nxt.button("Finish", key=f"next_{curr}", disabled=False)
+        next_col.button("Finish", key="finish")
 
-    # Always show Log Out button
+    # ─── Log Out ───────────────────────────────────────────────────
     if st.button("Log Out"):
-        # Clear answers when logging out
-        if "answers" in st.session_state:
-            del st.session_state.answers
+        st.session_state.clear()
         st.session_state.page = "login"

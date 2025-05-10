@@ -2,8 +2,8 @@
 import streamlit as st
 import time
 import logging
-from auth import authenticate
-from auth_signup import sanitize_input
+from authentication.auth import authenticate
+from authentication.auth_signup import sanitize_input
 
 # Configure logging
 logging.basicConfig(

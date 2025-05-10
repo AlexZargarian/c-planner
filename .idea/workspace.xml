@@ -4,12 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2e82c35a-1e4d-4d27-9eb9-92bc5aa8253f" name="Changes" comment="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;app.py">
+    <list default="true" id="2e82c35a-1e4d-4d27-9eb9-92bc5aa8253f" name="Changes" comment="New requirments for virtual ENV.">
+      <change afterPath="$PROJECT_DIR$/api_logic/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api_logic/gemini_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/authentication/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth_signup.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth_signup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/authentication/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth_signup.py" beforeDir="false" afterPath="$PROJECT_DIR$/authentication/auth_signup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/views/gemini.py" beforeDir="false" afterPath="$PROJECT_DIR$/views/gemini.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/views/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/views/login.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/views/signup.py" beforeDir="false" afterPath="$PROJECT_DIR$/views/signup.py" afterDir="false" />
     </list>
@@ -37,18 +41,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/authentication" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -107,7 +117,39 @@
       <option name="project" value="LOCAL" />
       <updated>1746899926376</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added sql injection prevention, added double password, added recommended password from google, added some UI changes as well suv has focus">
+      <option name="closed" value="true" />
+      <created>1746900872031</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1746900872031</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Added sql injection prevention, added double password, added recommended password from google, added some UI changes as well suv has focus">
+      <option name="closed" value="true" />
+      <created>1746900908766</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1746900908766</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Added the quesions to gemini page (prob need to be chanegd later) made sure that the user when they go back thier answers remain as they might need to change something">
+      <option name="closed" value="true" />
+      <created>1746901986971</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1746901986971</updated>
+    </task>
+    <task id="LOCAL-00009" summary="New requirments for virtual ENV.">
+      <option name="closed" value="true" />
+      <created>1746903092220</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1746903092220</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -120,6 +162,9 @@
     <MESSAGE value="Now the background is white with blue header, will add image of aua now" />
     <MESSAGE value="added the aua logo to the header, also made header a bit bigger" />
     <MESSAGE value="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;app.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;app.py" />
+    <MESSAGE value="Added sql injection prevention, added double password, added recommended password from google, added some UI changes as well suv has focus" />
+    <MESSAGE value="Added the quesions to gemini page (prob need to be chanegd later) made sure that the user when they go back thier answers remain as they might need to change something" />
+    <MESSAGE value="New requirments for virtual ENV." />
+    <option name="LAST_COMMIT_MESSAGE" value="New requirments for virtual ENV." />
   </component>
 </project>

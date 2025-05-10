@@ -4,7 +4,7 @@ import time
 import logging
 from database import create_user, user_exists
 from passlib.hash import bcrypt
-from auth_signup import validate_signup, sanitize_input
+from authentication.auth_signup import validate_signup, sanitize_input
 
 # Configure logging
 logging.basicConfig(
