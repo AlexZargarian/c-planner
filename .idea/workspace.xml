@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2e82c35a-1e4d-4d27-9eb9-92bc5aa8253f" name="Changes" comment="Now the background is white with blue header, will add image of aua now">
+    <list default="true" id="2e82c35a-1e4d-4d27-9eb9-92bc5aa8253f" name="Changes" comment="added the aua logo to the header, also made header a bit bigger">
+      <change afterPath="$PROJECT_DIR$/auth_signup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/views/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/views/login.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/views/signup.py" beforeDir="false" afterPath="$PROJECT_DIR$/views/signup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,7 +62,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1746888890804</updated>
-      <workItem from="1746888892663" duration="7488000" />
+      <workItem from="1746888892663" duration="9202000" />
     </task>
     <task id="LOCAL-00001" summary="First commit UI of log in sign in and opens a new page which should be imple,ented with our AI and the quesions">
       <option name="closed" value="true" />
@@ -96,7 +96,23 @@
       <option name="project" value="LOCAL" />
       <updated>1746896336400</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Visual changes such as text color, error color and so on..">
+      <option name="closed" value="true" />
+      <created>1746897506323</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1746897506323</updated>
+    </task>
+    <task id="LOCAL-00006" summary="added the aua logo to the header, also made header a bit bigger">
+      <option name="closed" value="true" />
+      <created>1746898501038</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1746898501038</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -107,6 +123,8 @@
     <MESSAGE value="Now" />
     <MESSAGE value="test of git repo" />
     <MESSAGE value="Now the background is white with blue header, will add image of aua now" />
-    <option name="LAST_COMMIT_MESSAGE" value="Now the background is white with blue header, will add image of aua now" />
+    <MESSAGE value="Visual changes such as text color, error color and so on.." />
+    <MESSAGE value="added the aua logo to the header, also made header a bit bigger" />
+    <option name="LAST_COMMIT_MESSAGE" value="added the aua logo to the header, also made header a bit bigger" />
   </component>
 </project>
