@@ -42,7 +42,7 @@ def main():
             </style>
         """, unsafe_allow_html=True)
 
-    # 3) Your existing global CSS with added cursor color rule
+    # 3) Your existing global CSS (unchanged)
     st.markdown(
         """
         <style>
@@ -93,7 +93,6 @@ def main():
         .stTextInput input, 
         .stTextArea textarea {
           color: black !important;
-          caret-color: black !important; /* Ensure cursor is black */
         }
 
         /* Light page titles - blue */
@@ -150,8 +149,8 @@ def main():
           color: white !important;
         }
 
-        /* Global rule to ensure cursor is black in ALL input fields */
-        input, textarea, [contenteditable="true"] {
+        /* Additional rule to ensure cursor is black in all input fields */
+        input, textarea {
           caret-color: black !important;
         }
         </style>
@@ -163,7 +162,7 @@ def main():
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
-    # 5) Dispatch to the appropriate view
+    # 5) Dispatch to the appropriate viewww
     if st.session_state.page == "login":
         login_page()
     elif st.session_state.page == "signup":
