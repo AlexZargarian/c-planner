@@ -1,0 +1,6 @@
+.venv/
+.idea/
+__pycache__/
+.env
+data/courses.json
+data/courses.csv
