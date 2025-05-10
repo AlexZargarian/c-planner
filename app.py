@@ -33,38 +33,33 @@ def main():
         }
 
         /* Make sure header elements are white */
-        [data-testid="stHeader"] button, 
+        [data-testid="stHeader"] button,
         [data-testid="stHeader"] span,
         [data-testid="stHeader"] svg {
           color: white !important;
         }
 
-        /* Black text for ALL text elements except header and footer */
-        .main p, .main span, .main label, .main div, 
+        /* Black text for most text elements, including links */
+        .main p, .main span, .main label, .main div,
         .stMarkdown, .stMarkdown p, .stText, .stMarkdown span,
-        input, textarea, .stTextInput, .stTextArea {
+        a { /* Targeting link elements */
           color: black !important;
         }
 
         /* Explicitly target input labels to ensure they're black */
-        .stTextInput label, .stTextArea label, 
+        .stTextInput label, .stTextArea label,
         [data-testid="stTextInput"] label,
         .css-pkbazv, .css-10trblm, .st-be, .st-bq, .st-br, .st-bs, .st-bt {
           color: black !important;
         }
 
         /* Make sure all input text is black */
-        .stTextInput input, 
+        .stTextInput input,
         .stTextArea textarea {
           color: black !important;
         }
 
-        /* Light page titles - blue */
-        h1 {
-          color: #548CA5 !important;
-        }
-
-        /* Transparent text & password inputs with improved specificity */
+        /* Set the caret (cursor) color to black for text inputs and textareas */
         .stTextInput > div > div > input,
         .stTextInput > div > div > textarea,
         [data-testid="stTextInput"] input,
@@ -75,10 +70,11 @@ def main():
           border-radius: 8px !important;
           padding: 0.5em 0.75em !important;
           color: black !important;
+          caret-color: black !important;
         }
 
         /* Also make sure the container around inputs is transparent */
-        .stTextInput > div, 
+        .stTextInput > div,
         .stTextInput > div > div,
         [data-testid="stTextInput"] > div,
         [data-testid="stTextInput"] > div > div {
