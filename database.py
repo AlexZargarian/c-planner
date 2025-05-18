@@ -92,3 +92,24 @@ def user_exists(email: str) -> bool:
     except mysql.connector.Error as err:
         logging.error(f"Error checking if user exists: {err}")
         raise Exception("Error checking user records")
+    
+
+def save_transcript(user_id: int, transcript_text: str) -> bool:
+    """
+    Inserts a finalized transcript for a given user into the transcripts table.
+    Returns True on success.
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            query = """
+                INSERT INTO transcripts (user_id, transcript) 
+                VALUES (%s, %s)
+            """
+            cursor.execute(query, (user_id, transcript_text))
+            conn.commit()
+            cursor.close()
+        return True
+    except mysql.connector.Error as err:
+        logging.error(f"Error saving transcript: {err}")
+        raise Exception("Could not save transcript")
