@@ -4,6 +4,7 @@ import time
 import logging
 from authentication.auth import authenticate
 from authentication.auth_signup import sanitize_input
+from database import get_db_connection
 
 # Configure logging
 logging.basicConfig(
@@ -78,6 +79,14 @@ def login_page():
             elif authenticate(email, password):
                 # Reset login attempts on success
                 st.session_state.login_attempts = 0
+
+                # fetch the row for this email so we can pull out its id
+                with get_db_connection() as conn:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+                    user_row = cursor.fetchone()
+                st.session_state.user_id = user_row["id"]
+
                 # Set session data
                 st.session_state.user_email = email
                 st.session_state.authenticated = True
