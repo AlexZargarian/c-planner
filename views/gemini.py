@@ -3,6 +3,7 @@ import streamlit as st
 import PyPDF2
 
 from api_logic.gemini_api import process_pdf_with_gemini  # import your API logic
+from database import save_transcript                         # ← new import
 
 def extract_text_from_pdf(uploaded_file) -> str:
     """Extract raw text from an uploaded PDF."""
@@ -115,9 +116,34 @@ def gemini_page():
         st.session_state.current_q = curr - 1
     if curr < total_q - 1:
         if next_col.button("Submit", key=f"next_{curr}"):
+            # ── Save transcript early if we're on Q1 ─────────────
+            if curr == 0:
+                final_transcript = st.session_state.answers.get(0, "").strip()
+                user_id = st.session_state.get("user_id")
+                if user_id:
+                    try:
+                        save_transcript(user_id, final_transcript)
+                        st.success("✅ Transcript saved.")
+                    except Exception as e:
+                        st.error(f"Error saving transcript: {e}")
+                else:
+                    st.error("No user in session; please log in again.")
+            # ───────────────────────────────────────────────────────
             st.session_state.current_q = curr + 1
     else:
-        next_col.button("Finish", key="finish")
+        if next_col.button("Finish", key="finish"):
+            # 1) grab the cleaned transcript text
+            final_transcript = st.session_state.answers.get(0, "").strip()
+            # 2) get the logged-in user’s ID
+            user_id = st.session_state.get("user_id")
+            if not user_id:
+                st.error("No user in session—please log in again.")
+            else:
+                try:
+                    save_transcript(user_id, final_transcript)
+                    st.success("✅ Your transcript has been saved.")
+                except Exception as e:
+                    st.error(f"Error saving transcript: {e}")
 
     # ─── Log Out ───────────────────────────────────────────────────
     if st.button("Log Out"):
