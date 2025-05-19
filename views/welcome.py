@@ -10,4 +10,4 @@ def welcome_page():
         Ready to make your next semester your best one yet? Let’s go! 👇
     """)
     if st.button("Next"):
-        st.session_state.page = "transcript_intro"
+        st.session_state.page = "session_choice"
