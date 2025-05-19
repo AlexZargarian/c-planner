@@ -158,64 +158,100 @@ def save_preference(user_id: int, question: str, answer: str | None) -> None:
         conn.commit()
 
 
-# # ─────────────────────────  NEW HELPERS  ────────────────────────────
-# def transcript_exists(user_id: int) -> bool:
-#     """
-#     True if the user already has a row in `transcripts`.
-#     """
-#     sql = "SELECT 1 FROM transcripts WHERE user_id = %s LIMIT 1"
-#     try:
-#         with get_db_connection() as conn:
-#             cur = conn.cursor()
-#             cur.execute(sql, (user_id,))
-#             return cur.fetchone() is not None
-#     except mysql.connector.Error as err:
-#         logging.error(f"Error checking transcript existence: {err}")
-#         raise Exception("Database error while checking transcript")
+# ─── Transcript helpers ────────────────────────────────────────────
+def transcript_exists(user_id: int) -> bool:
+    sql = "SELECT 1 FROM transcripts WHERE user_id = %s LIMIT 1"
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, (user_id,))
+            return cur.fetchone() is not None
+    except mysql.connector.Error as err:
+        logging.error(f"Error checking transcript existence: {err}")
+        raise
+
+def fetch_transcript(user_id: int) -> str | None:        # ← name used by resume.py
+    sql = "SELECT transcript FROM transcripts WHERE user_id = %s LIMIT 1"
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, (user_id,))
+            row = cur.fetchone()
+            return row[0] if row else None
+    except mysql.connector.Error as err:
+        logging.error(f"Error fetching transcript: {err}")
+        raise
+
+def upsert_transcript(user_id: int, text: str) -> None:  # ← needed by resume.py
+    sql = """
+        INSERT INTO transcripts (user_id, transcript)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE transcript = VALUES(transcript)
+    """
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, (user_id, text))
+    except mysql.connector.Error as err:
+        logging.error(f"Error upserting transcript: {err}")
+        raise
 
 
-# def get_transcript(user_id: int) -> str | None:
-#     """
-#     Return the saved transcript text (or None if absent).
-#     """
-#     sql = "SELECT transcript FROM transcripts WHERE user_id = %s LIMIT 1"
-#     try:
-#         with get_db_connection() as conn:
-#             cur = conn.cursor()
-#             cur.execute(sql, (user_id,))
-#             row = cur.fetchone()
-#             return row[0] if row else None
-#     except mysql.connector.Error as err:
-#         logging.error(f"Error fetching transcript: {err}")
-#         raise Exception("Database error while fetching transcript")
+# ─── Preferences helpers ───────────────────────────────────────────
+def fetch_all_preferences(user_id: int) -> list[dict]:
+    """
+    Return rows like {"question": str, "answer": str | None}.
+    """
+    sql = "SELECT question, answer FROM preferences WHERE user_id = %s"
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor(dictionary=True)
+            cur.execute(sql, (user_id,))
+            return cur.fetchall()
+    except mysql.connector.Error as err:
+        logging.error(f"Error fetching preferences: {err}")
+        raise
 
 
-# def get_preferences(user_id: int) -> dict[str, str | None]:
-#     """
-#     Return {question → answer} for this user.
-#     """
-#     sql = "SELECT question, answer FROM preferences WHERE user_id = %s"
-#     try:
-#         with get_db_connection() as conn:
-#             cur = conn.cursor()
-#             cur.execute(sql, (user_id,))
-#             return {q: a for q, a in cur.fetchall()}
-#     except mysql.connector.Error as err:
-#         logging.error(f"Error fetching preferences: {err}")
-#         raise Exception("Database error while fetching preferences")
+
+def pref_count(user_id: int) -> int:
+    sql = "SELECT COUNT(*) FROM preferences WHERE user_id = %s"
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, (user_id,))
+            (cnt,) = cur.fetchone()
+            return int(cnt)
+    except mysql.connector.Error as err:
+        logging.error(f"Error counting preferences: {err}")
+        raise
 
 
-# def pref_count(user_id: int) -> int:
+def delete_user_data(user_id: int) -> None:
+    """
+    Remove all of this user’s transcripts, preferences, and degree requirements.
+    """
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        # delete preferences first (it’s many rows)
+        cur.execute("DELETE FROM preferences WHERE user_id = %s", (user_id,))
+        # delete transcript
+        cur.execute("DELETE FROM transcripts WHERE user_id = %s", (user_id,))
+        # delete degree requirements
+        cur.execute("DELETE FROM degreqs WHERE user_id = %s", (user_id,))
+        conn.commit()
+
+
+
+
+# # ─── Onboarding check used in login.py ─────────────────────────────
+# def has_completed_onboarding(user_id: int) -> bool:
 #     """
-#     How many preference rows this user has stored.
+#     Consider onboarding complete if a transcript exists AND
+#     at least one preference row is stored.
 #     """
-#     sql = "SELECT COUNT(*) FROM preferences WHERE user_id = %s"
-#     try:
-#         with get_db_connection() as conn:
-#             cur = conn.cursor()
-#             cur.execute(sql, (user_id,))
-#             (cnt,) = cur.fetchone()
-#             return int(cnt)
-#     except mysql.connector.Error as err:
-#         logging.error(f"Error counting preferences: {err}")
-#         raise Exception("Database error while counting preferences")
+#     return transcript_exists(user_id) and pref_count(user_id) > 0
+
+
+
+
