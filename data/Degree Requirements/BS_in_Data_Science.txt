@@ -1,0 +1,147 @@
+BS in Data Science and General Education Requirements – 121 credits
+General Education (GE)
+(13 courses, plus one QS and one SS from core)
+
+Foundation Requirements
+(6 courses, 18 credits)
+
+Freshman Seminar I
+
+Freshman Seminar II
+
+Armenian Language/Literature I
+
+Armenian Language/Literature II
+
+Armenian History I
+
+Armenian History II
+
+All undergraduate students must take these 6 courses
+
+Quantitative Science Requirements
+(2 courses, 6 credits, + core course Physics & Chemistry in Life Sciences)
+
+BA Track:
+
+Two courses coded as GE-QS, as a cluster (in the same QS theme, one must be upper division)
+
+BI Track:
+
+Cell & Molecular Biology
+
+One upper QS course as a cluster (in any QS theme)
+
+Social Science Requirements
+(2 courses, 6 credits, + core course Intro to Business)
+
+BA Track:
+
+Business Analytics for Data Science
+
+One upper SS course (in any SS theme)
+
+BI Track:
+
+Two courses coded as GE-SS, as a cluster (in the same SS theme, one must be upper division)
+
+Arts & Humanities Requirements
+(3 courses, 9 credits)
+
+Three courses coded as GE-AH, as a cluster
+
+At least one must be upper division
+
+Physical Education, First Aid, and Civil Defense Requirements
+FND 110 Physical Education – Four (4) semesters in the first two years
+
+FND 152 First Aid – One course, taken in the first semester
+
+FND 153 Civil Defense – One course, taken in the first semester
+
+DS Major Core
+(18 courses, 58 credits)
+
+Calculus 1
+
+Calculus 2
+
+Calculus 3
+
+Linear Algebra
+
+Data Visualization
+
+Discrete Math
+
+Probability
+
+Statistics 1
+
+Statistics 2
+
+Numerical Methods
+
+Introduction to Computer Science
+
+Programming for Data Science
+
+Data Structures/Algorithms for Data Science (4 credits)
+
+Machine Learning
+
+Artificial Intelligence
+
+Databases and Distributed Systems
+
+Physics & Chemistry in Life Sciences
+
+Intro to Business
+
+Capstone
+
+
+Business Analytics (BA) Track
+(3 courses + 2 Track Electives, 15 credits)
+
+Track Requirements (3 courses):
+Business Intelligence
+
+Time Series Forecasting
+
+Marketing Analytics
+
+Track Electives (choose 2 from the following):
+Business Data Management
+
+Urban Data Science
+
+eCommerce
+
+Stochastic Modeling
+
+OR
+
+Bioinformatics (BI) Track
+(3 courses + 2 Track Electives, 15 credits)
+
+Track Requirements (3 courses):
+Introduction to Bioinformatics
+
+Computational Biology
+
+Network and Systems Biology
+
+Track Electives (choose 2 from the following):
+Functional Genomics
+
+Bioinformatics Algorithms
+
+Structural Modeling
+
+Biotechnology
+
+Free Electives
+(3 courses, 9 credits)
+
+Any three additional courses offered at AUA

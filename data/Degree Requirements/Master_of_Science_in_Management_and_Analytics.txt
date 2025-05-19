@@ -1,0 +1,111 @@
+﻿The Master of Science in Management and Analytics (MSMA) Degree Requirements
+
+
+The MSMA program requires completion of a minimum of 35 credits (which are divided into core and electives) and typically lasts 18 months. Applicants without  background in business and/or economics may be required to take prerequisite courses in Accounting, Operations Management, and Marketing[1]. Those who will not take these prerequisites can complete the program in 15 months if they decide to take maximum allowed course credits per semester. All applicants will be required to take a four-credit core course – quantitative tools for management which includes a fast introduction to MS excel and python, during the summer before they can embark on the main courses of the program. Additionally, an intensive boot-camp on business communications will be offered to those whose language of instruction was not English in the undergraduate program.
+
+
+[1] Admission decision does not depend on the necessity to take pre-requisite courses. The MSMA program level admission committee will consider the applicants’ profile and make the respective recommendation. Tuition for additional pre-requisite courses is calculated independently from program tuition. These courses will bear no credit and will not be considered as part of MSMA program requirements.
+
+
+Courses:
+
+
+Boot-camps
+Business Communication Boot-camp (750 minutes)
+
+
+Required courses (all courses 3-credits except as noted):
+Introduction to Accounting (3 credits equivalent, no credits towards program requirements) 
+Operations Management (3 credits equivalent, no credits towards program requirements) 
+Introduction to Marketing (3 credits equivalent, no credits towards program requirements) 
+Quantitative Tools for Management (4 credits)
+Accounting for Decision Making 
+Data Management 
+Organizational Behavior 
+Business Analytics 
+Managerial Economics 
+Analytical Tools for Supply Chain Decisions 
+Marketing Management 
+Research Methods (1 credit) 
+Capstone 
+Elective 1 (2 credits) Advanced Topics in Data Analysis or Project Management
+Elective 2 (3 credits) Business Strategy and Innovation
+ 
+AUA requires all graduate students to complete 1 credit Environmental studies.
+
+
+
+
+Graduate Certificate in Data Analytics (CDA)
+
+
+ABOUT THE PROGRAM
+
+
+The Graduate Certificate in Data Analytics (CDA) is a 12-month program offered by the Master of Science in Management and Analytics (MSMA) program in the Manoogian Simone College of Business and Economics (CBE). The program will provide professionals with the skills required to be globally competitive in the field of data analysis. Students will explore introductory and advanced topics in data management, analysis, machine learning and visualization. Probability theory, statistical analysis methods and tools, visual presentations, concepts and techniques for data mining and web scraping, machine learning and introduction to natural language processing will be covered during the 4 graduate level courses that are required for the successful completion of the graduate certificate program. Importantly, all 4 courses are part of MSMA curriculum (3 core plus 1 elective course). Professionals that complete this program will have a robust knowledge of data analysis methods and tools, including:
+
+
+understanding of machine learning and AI
+working knowledge with the real-world data sets
+ability to formulate the research question and design studies
+ability to discover and present information hidden in the data
+working knowledge of data management tools and programming languages like SQL, Python and Power BI. 
+The program is open to anyone who wishes to prepare for a rewarding career in the field of Data Analytics. In addition, the program provides accelerated path for students studying in MBA program providing them with the opportunity to use the credits from relevant courses towards CDA program (details are available below).
+
+
+ 
+
+
+CERTIFICATE COMPLETION REQUIREMENTS
+
+
+To receive a Certificate in Data Analytics (CDA) students must successfully complete the below listed graduate courses with a grade of C or better in each course and maintain an overall minimum 3.0 grade point average (GPA). CDA graduates who wish to pursue further study towards the MS in Management and Analytics program, may transfer their CDA courses and credits towards the MSMA Program. Required coursework for the completion of CDA must be finished in a 2-years period, after starting the program.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COURSE DESCRIPTIONS AND SCHEDULE
+
+
+Summer Term
+
+
+MGMT 300 Quantitative Tools for Management (Credits: 4)
+Prerequisites: None. 
+
+
+Note: MBA students can use their “Data Analysis for Business Decisions” course to waive the 2 credit component of MGMT 300 devoted to statistics and probability theory. It will suffice for them to participate in 2 credit component dedicated to the introduction of Python.
+
+
+Fall Semester
+
+
+MGMT 325 Business Analytics (Credits: 3)
+Prerequisite: MGMT 300
+
+
+MGMT 329 Data Management (Credits: 3)
+Prerequisite: MGMT 300
+
+
+Spring Semester
+
+
+MGMT 328 Advanced Topics in Data Analysis (Credits: 2)
+Prerequisite: MGMT 325, MGMT 329
+
+
+Note: MBA students can replace MGMT 328 course with “Business Intelligence Tools” course from their curriculum.
+
+
+Courses in the certificate program are scheduled during evening hours or Saturdays.

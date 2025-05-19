@@ -1,0 +1,59 @@
+﻿Master of Science in Economics (MSE) Degree Requirements
+
+
+Preparatory Semester
+
+
+ECON300 Quantitative Methods for Economists (Credits: 2)
+ECON301 Graduate Preparatory Microeconomics (Credits: 2)
+ECON310 Statistical Methods for Economists (Credits: 2)
+
+
+
+
+Core Semester
+
+
+ECON 305 Economic Analysis and Communication (Credits: 3)
+ECON311 Econometrics (Credits: 3)
+ECON320 Microeconomic Theory (Credits: 3)
+ECON330 Macroeconomic Theory (Credits: 3)
+
+
+
+
+Specializing Semesters
+
+
+ECON312 Time series Analysis
+ECON313 Advanced time series
+ECON314 Panel Data Analysis
+Econ315 Econometric Modeling, Prerequisite: Econ311
+Econ317 Data Scraping
+Econ318 Advanced Econometrics
+Econ319 Data Analytics
+Econ328 Advanced Regulatory Analysis
+Econ331 Monetary Theory and Policy (Credits:2)
+Econ332 Macroprudential Policy and Regulation
+Econ333 Advanced Macroeconomics
+Econ334 Empirical Macroeconomics
+Econ337 Macroeconomic Analysis, Prerequisite: Econ330
+Econ338 Advanced Macroeconomic Policy Modelling, Prerequisite: Econ330
+Econ342 Labor Economics
+Econ344 Experimental Economics: Firms and Productivity
+Econ346 Behavioral Economics
+Econ349 Special Topics in Economics
+Econ351 Introduction to Finance Theory
+Econ352 Behavioral Finance
+Econ353 Corporate Finance
+Econ356 Equity Valuation
+Econ357 Portfolio Management and Asset Allocation
+Econ358 Financial Engineering
+Econ359 Financial Econometrics
+Econ361 Sustainable Development
+Econ362 Public Finance: Taxation
+Econ363 Development Economics
+Econ365 CGE Modelling, Prerequisites: Econ320, Econ330
+Econ376 Applied Topics in Data Analytics
+Econ383 Pre-thesis
+Econ386 Capstone

@@ -1,0 +1,68 @@
+﻿Master of Public Health Program Degree Requirements
+Course Listing 
+PH302 General Principles of Public Health Problem Solving (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH 310 Social and Behavioral Sciences in Public Health (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH311 Problem Investigation in Environmental Health (2 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH319 Introductory Biostatistics (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH321 Inferential Biostatistics (2 credits). Prerequisite: PH 319. Restricted to MPH students in the Evidence-based Practice Concentration or program permission.
+PH 320 Data Management Systems (1 credit). Prerequisite: None. Restricted to MPH students or program permission.
+PH322 Epidemiology (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH330 Health Economics & Finance (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH331 Comparative Health Systems (2 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH 333: Politics of Public Health (1 credit)
+PH340 Health Services Management (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH350 Project Development and Evaluation (4 credits)
+Prerequisites: PH310, PH 319, and PH 322. Restricted to MPH students or program permission.
+PH360 Training of Trainers (3 credits). Prerequisite: None. Restricted to MPH students or program permission.
+PH390 MPH Integrating Experience Project Planning (1 credit). Prerequisites: None. Restricted to MPH students or program permission. (Pass/No pass only)
+PH393 MPH Internship (3 credits).
+EVIDENCE-BASED PRACTICE CONCENTRATION COURSES
+PH321 Inferential Biostatistics (2 credits). Prerequisite: PH 319. Restricted to MPH students in the Evidence-based Practice Concentration or program permission.
+PH323 Biostatistics: Modeling and Sampling (4 credits). Prerequisite: PH 319, 321. Restricted to MPH students or program permission.
+PH324 Intermediate Epidemiology (3 credits). Prerequisites: PH322 and PH 352. Restricted to MPH students in the Evidence-based Practice Concentration or program permission.
+PH332 Program Planning (3 credits). Prerequisites: PH302. Restricted to MPH students in the Evidence-based Practice Concentration or program permission
+PH351 Qualitative Research Methods (3 credits). Prerequisites: PH310. Restricted to MPH students in the Evidence-based Practice Concentration or program permission.
+PH352 Survey Research Methods (3 credits). Prerequisites: PH351. Restricted to MPH students in the Evidence-based Practice Concentration or program permission.
+PH391 MPH Integrating Experience Project Implementation – 1 (3 credits). Prerequisites: PH390. Restricted to MPH students in the Evidence-based Practice Concentration or program permission. (Pass/No pass only)
+PH392 MPH Integrating Experience Project Implementation – 2 (4 credits)
+Prerequisites: PH 391. Restricted to MPH students in the Evidence-based Practice Concentration or program permission. (Pass/No pass only)
+Electives
+PH303 Special Studies Seminar (credit variable)
+Seminar series offered by MPH faculty for MPH students.
+PH304 MPH Elective (1 credit unit)
+Special seminar topics offered by guest faculty for MPH students.
+Semester 1: Public Health Problem Solving and Techniques of Problem Investigation
+PH302 General Principles of Public Health Problem Solving (3 credit units)
+PH321 Inferential Biostatistics (5 credit units)
+PH322 Epidemiology (3 credit units)
+PH310 Social and Behavioral Sciences in Public Health (3 credit units)
+PH311 Problem Investigation in Environmental Health (3 credit units)
+Semester 2: Program Planning, Implementation & Evaluation
+PH320 Data Management Systems (1 credit unit)
+PH330 Health Economics & Finance (4 credit units)
+PH331 Comparative Health Systems (2 credit units)
+PH332 Program Planning (3 credit units)
+PH340 Health Services Management (3 credit units)
+PH350 Project Development and Evaluation (4 credit units)
+PH390 MPH Project Planning (1 credit units)
+
+
+ 
+Semester 3: Advanced Methodology
+PH351 Qualitative Research Methods (3 credit units)
+PH352 Survey Research Methods (3 credit units)
+PH323 Biostatistics: Modeling and Sampling (4 credit units)
+PH324 Intermediate Epidemiology (3 credit units)
+PH391 Master’s Project Implementation – I (3 credit units)
+ 
+Semester 4: Synthesis
+PH360 Training of Trainers (3 credit units)
+PH381 Graduate Research seminar (3 credit units)
+PH392 Master’s Project Implementation- 2 (4 credit units)
+PH393 MPH Internship (3 credit units)
+ 
+Electives
+PH303 Special Studies Seminar (credit variable)
+Seminar series offered by MPH faculty for MPH students.
+PH304 MPH Elective (1 credit unit)
+Special seminar topics offered by guest faculty for MPH students.

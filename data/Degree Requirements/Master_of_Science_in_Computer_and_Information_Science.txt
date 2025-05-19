@@ -1,0 +1,60 @@
+﻿Master of Science in Computer and Information Science (MSCIS)
+Degree Requirements (All courses are 3 credits unless otherwise noted)
+
+
+CORE (30 credits + 1 credit ENV course) All are required
+CS310 Theory of Computing
+CS312 OOAD (or CS323 Advanced OOP)
+CS312 Advanced Topics in Algorithms
+CS322 Software Engineering
+CS326 Database Systems
+CS340 Machine Learning
+CS350 Software Project Management
+DS330 Deep Learning**
+CS395 Capstone Preparation (2nd-year standing)
+CS396 Capstone Thesis – 4 credits
+or CS390 Capstone Practicum (2nd-year standing) – 1 credit
+ENV* – 1 credit environmental requirement
+
+
+Concentration Electives (12 credits)
+Choose 4 courses from either the DS concentration or the CS concentration.
+
+CS319 Computer Vision
+CS355 Entrepreneurship
+CS371 Image Processing
+CS339 Quantum Computing
+
+DS Concentration Options
+
+
+        CS342 Data Science
+CS343 Data Visualization
+CS345 Bioinformatics
+CS346 Artificial Intelligence
+CS362 Time Series Analysis
+
+
+CS Concentration Options
+CS315 Cryptography
+CS317 Computer Graphics
+CS331 Operating Systems
+CS336 Compiler Design
+CS337 Cybersecurity
+
+
+Free Electives (6 credits)
+Choose any two courses (or from concentration courses)
+Choose any 2 courses (may include courses from above concentrations).
+CS392 Special Topics in Computer Science: System Design
+CS392 Special Topics in Computer Science: Cloud Computing
+CS392 Special Topics in Computer Science: Distributed Algorithms
+IESM324 Applied Statistics for Engineers
+IESM313 Data Mining & Predictive Analytics
+IESM311 Quality Assurance & Management
+IESM372 Portfolio Theory
+IESM360 CAD
+IESM361 CAM
+IESM345 Supply Chain Management
+IESM347 Design and Innovation of Information Services
+IESM315 Engineering Economics

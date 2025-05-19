@@ -1,0 +1,62 @@
+﻿Master of Engineering in Industrial Engineering and Systems Management Degree Requirements (Data Analytics – DA)
+
+
+(45 Credits + 1-Credit Environmental Requirement)
+
+
+* All courses are 3 credits unless otherwise noted
+
+
+CORE
+All are required
+IESM 315 Engineering Economics
+IESM 321 Operations Research 2
+IESM 301 Analysis and Design of Data Systems
+IESM 311 Quality Assurance and Management
+IESM 330 Simulation of IE Systems
+IESM 331 Production System Analysis
+IESM 395 Capstone Preparation (2nd-year standing)
+IESM 396 Capstone Thesis – 4 credits or 
+IESM 397 Capstone Project (2nd-year standing) – 1 credit
+ENV***- 1 credit env. Requirement
+
+
+
+
+DA Concentration Electives
+(choose from the following)
+IESM 324 Applied Statistics for Engineers
+CS 340 Machine Learning
+CS 343 Data Visualization
+IESM 313 Data Mining & Predictive Analytics
+DS 330 Deep Learning
+CS 346 Artificial Intelligence
+CS 362 Time Series Analysis
+DS ### Bayesian Statistics
+CS 342 Data Science
+CS 345 Bioinformatics
+Decision Analysis
+
+
+Preparatory Courses (to be completed if needed before core)
+IESM 106 Probability & Statistics
+CS 111 Programming for Data Science
+IESM 220 Operations Research 1
+
+
+Electives (additional 3-credit options)
+IESM 311 Quality Assurance & Management
+IESM 372 Portfolio Theory
+IESM 360 CAD
+IESM 361 CAM
+IESM 345 Supply Chain Management
+IESM 347 Design and Innovation of Information Services
+CS 319 Computer Vision
+CS 355 Entrepreneurship
+CS 371 Image Processing
+CS 315 Cryptography
+CS 337 Cybersecurity
+CS 350 Software Project Management
+Big Data and Cloud Computing
+Data Structures
+Design and Analysis of Experiments

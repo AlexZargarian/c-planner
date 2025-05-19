@@ -1,0 +1,158 @@
+BS in Computer Science & General Education Requirements
+
+General Education (GE)
+(15 courses)
+
+Foundation Requirements
+(6 courses)
+
+FND 101 Freshman Seminar 1
+
+FND 102 Freshman Seminar 2
+
+FND 103 Armenian Language & Literature 1
+
+FND 104 Armenian Language & Literature 2
+
+FND 121 Armenian History 1
+
+FND 122 Armenian History 2
+
+Quantitative Sciences Requirements
+(3 courses)
+
+Any 3 quantitative sciences courses forming a cohesive cluster coded as GE-QS
+
+Arts & Humanities Requirements
+(3 courses)
+
+Any 3 humanities courses forming a cohesive cluster coded as GE-AH
+
+Social Sciences Requirements
+(3 courses)
+
+Any 3 social sciences courses forming a cohesive cluster coded as GE-SS
+
+Physical Education, First Aid, and Civil Defense Requirements
+FND 110 Physical Education – 120 hours
+
+FND 152 First Aid – 20 hours
+
+FND 153 Civil Defense – 20 hours
+
+
+CS Core Requirements
+(17 courses)
+
+CS 100 – Calculus 1
+
+CS 101 – Calculus 2
+
+CS 102 – Calculus 3
+
+CS 103 – Real Analysis
+
+CS 104 – Linear Algebra
+
+CS 111 – Discrete Mathematics
+
+CS 107 – Probability
+
+CS 108 – Statistics
+
+CS 110 – Introduction to Computer Science
+
+CS 120 – Introduction to Object-Oriented Programming
+
+CS 121 – Data Structures
+
+CS 211 – Introduction to Algorithms
+
+CS 112 – Numerical Analysis
+
+CS 213 – Optimization
+
+CS 130 – Computer Organization
+
+ENGS 121 – Mechanics
+
+CS 296 – Capstone
+
+CS Tracks (Minimum 5 courses)
+Students must choose one of the following tracks:
+
+Mathematical Modeling Track
+Track Requirements
+CS 105 – Ordinary Differential Equations
+
+CS 205 – Partial Differential Equations
+
+CS 226 – Math Modeling Applications
+
+Track Electives (choose at least 2)
+CS 215 – Cryptography #
+
+CS 217 – Computer Graphics #
+
+CS 246 – Dynamical Systems
+
+CS 251 – Machine Learning #
+
+CS 260 – Image Processing #
+
+CS 231 – Quantum Computing #
+
+CS 261 – Portfolio Theory and Risk Management
+
+CS 262 – Game Theory #
+
+CS 310 – Theory of Computing #
+
+DS 231 – Computer Vision #
+
+DS 233 – Natural Language Processing #
+
+DS 330 – Deep Learning #
+
+Applied Computer Science Track
+Track Requirements
+CS 132 – Theory of Communication Networks
+
+CS 220 – Parallel and High-Performance Computing
+
+CS 222 – Databases
+
+Track Electives (choose at least 2)
+CS 131 – Human-Computer Interaction
+
+CS 221 – Distributed Systems ##
+
+CS 218 – Game Development
+
+CS 219 – Mobile Application Development
+
+CS 230 – Software Testing Fundamentals
+
+CS 232 – Cybersecurity
+
+CS 236 – Compiler Design
+
+CS 245 – Bioinformatics ##
+
+CS 246 – Artificial Intelligence (AI) ##
+
+CS 252 – Data Science ##
+
+CS 290 – Special Topics in Applied CS
+
+General Track
+Students may choose a combination of courses from both the Mathematical Modeling Track and the Applied Computer Science Track. The combination must be approved by the program chair.
+
+Free Electives (Min. 3 courses)
+Any 3 additional courses offered at AUA
+
+
+* All courses are three credits unless otherwise noted.
+**To complete the BS in Computer Science program, students must complete a total of 40 courses, including 15 General Education courses, 17 CS Core Requirements, 5 CS Track courses, and a minimum of 3 Free Elective courses. In addition to these 40 courses, students are also required to complete the physical education (PHED 110), first aid (PHED 152), and civil defense (PHED 153) requirements as dictated by Armenian Law.
+# Also satisfies CS Track elective requirement.
+## Also satisfies MM Track elective requirement.
