@@ -3,6 +3,9 @@ import streamlit as st
 import base64
 from pathlib import Path
 
+from views.session_choice  import session_choice_page      # ← NEW
+from views.resume          import resume_page              # ← NEW
+
 from views.landing         import landing_page           # already imported
 from views.login            import login_page
 from views.signup           import signup_page
@@ -88,6 +91,8 @@ def main():
         case "landing":          landing_page()     # ← NEW
         case "login":            login_page()
         case "signup":           signup_page()
+        case "session_choice":   session_choice_page()   # ← NEW
+        case "resume":           resume_page()           # ← NEW
         case "welcome":          welcome_page()
         case "transcript_intro": transcript_intro_page()
         case _:                  gemini_page()      # default to questionnaire
