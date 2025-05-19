@@ -3,4 +3,4 @@
 __pycache__/
 .env
 data/courses.json
-data/courses.csv
+database.log
