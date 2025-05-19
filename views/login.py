@@ -5,6 +5,8 @@ import logging
 from authentication.auth import authenticate
 from authentication.auth_signup import sanitize_input
 from database import get_db_connection
+# from database import transcript_exists, pref_count       # NEW
+from views.gemini import TOTAL_Q  
 
 # Configure logging
 logging.basicConfig(
@@ -92,7 +94,7 @@ def login_page():
                 st.session_state.authenticated = True
                 st.session_state.login_time = time.time()
                 # Redirect to main page
-                st.session_state.page = "gemini"
+                st.session_state.page = "welcome"
             else:
                 st.markdown(
                     "<p style='color: black !important; background-color: #F8D7DA; padding: 10px; border-radius: 5px;'>❌ Invalid email or password.</p>",
