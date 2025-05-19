@@ -1,151 +1,258 @@
+# ─────────────────────────  views/gemini.py  ─────────────────────────
 import io
-import streamlit as st
+from pathlib import Path
+from typing import Dict
+
 import PyPDF2
+import streamlit as st
 
-from api_logic.gemini_api import process_pdf_with_gemini  # import your API logic
-from database import save_transcript                         # ← new import
+from api_logic.gemini_api import process_pdf_with_gemini
+from database import save_transcript, save_preference, save_degree_requirements
 
+DEGREE_DIR = Path("data") / "Degree Requirements"
+
+# ─── utility --------------------------------------------------------
 def extract_text_from_pdf(uploaded_file) -> str:
-    """Extract raw text from an uploaded PDF."""
     try:
-        reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
+        rdr = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+        return "\n".join(p.extract_text() or "" for p in rdr.pages)
     except Exception as e:
-        st.error(f"Error extracting text from PDF: {e}")
+        st.error(f"PDF-extract error: {e}")
         return ""
 
-def gemini_page():
-    """Main questionnaire page with PDF→Gemini→Text‐area on question #1."""
+# ─── static data ----------------------------------------------------
+PROGRAM_OPTIONS = [
+    "BA in Business", "BS in Economics", "BA in English and Communications",
+    "BA in Politics and Governance", "BS in Computer Science",
+    "BS in Data Science", "BS in Engineering Sciences",
+    "BS in Environmental and Sustainability Sciences", "BS in Nursing",
+    "BS in Environmental Studies", "BS in Gender Studies",
+    "BS in Genocide Studies and Human Rights", "BS in Philosophy",
+    "BS in Philosophy, Politics, and Economics",
+    "Master of Business Administration",
+    "Master of Science in Management and Analytics",
+    "Master of Science in Economics",
+    "Master of Arts in Teaching English as a Foreign Language",
+    "Master of Laws",
+    "Master of Arts in Human Rights and Social Justice",
+    "Master of Arts in International Relations and Diplomacy",
+    "Master of Public Affairs",
+    "Master of Arts in Multiplatform Journalism",
+    "Master of Public Health",
+    "Master of Engineering in Industrial Engineering and Systems Management",
+    "Master of Science in Computer and Information Science (MSCIS)",
+]
 
-    # ─── CSS for styling inputs, notifications & uploader ─────────────
-    st.markdown("""
-    <style>
-    /* Text inputs & areas */
-    .stTextInput input, .stTextArea textarea {
-        background-color: white !important;
-        color: black !important;
-    }
-    /* Notifications (success, error, info, warning) */
-    .stSuccess, .stError, .stWarning, .stInfo, .stException,
-    div.stAlert, [data-baseweb="notification"] div {
-        color: black !important;
-    }
-    /* FileUploader container & button */
-    div[data-testid="stFileUploader"] {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #ccc !important;
-        padding: 10px !important;
-    }
-    div[data-testid="stFileUploader"] button {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #999 !important;
-    }
-    /* Uploaded file name & size */
-    div[data-testid="stFileUploader"] span,
-    div[data-testid="stFileUploader"] p {
-        background-color: white !important;
-        color: black !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+QUESTIONS = [
+    "👉 Please upload the PDF version of your official transcript. (Download it from your AUA account: General → Bio → Transcript → Download)",
+    "👉 What is your current academic program? (Select from the dropdown)",
+    "👉 Which year of your studies are you currently in? (e.g., First year, Second year, Third year, etc.)",
+    "👉 Are there any specific courses you’re hoping to take this semester? (List them below or click “Skip” ⏭️ if none come to mind.)",
+    "👉 Are there any instructors you'd prefer to avoid? (List their names or click “Skip” ⏭️ if not applicable.)",
+    "👉 Are there any courses you definitely don’t want to take? (List them or press “Skip” ⏭️ if none.)",
+    "👉 What time of day do you prefer having classes? (e.g., Mornings, Afternoons, Evenings)",
+    "👉 How many courses would you like to take this semester?",
+    "👉 Do you prefer having classes mostly on MWF (Monday/Wednesday/Friday) or TTH (Tuesday/Thursday)?",
+]
+TOTAL_Q = len(QUESTIONS)
 
-    # ─── Define your questions ───────────────────────────────────────
-    questions = [
-        "1. Please insert the classes you have taken:",
-        "2. Which faculty are you from?",
-        "3. What year are you in (e.g., 2nd year)?",
-        "4. Are there any specific courses you would like to take?",
-        "5. Are there any instructors you want to avoid?",
-        "6. Are there any classes you definitely do not want?",
-        "7. At what times do you prefer to have classes (are evenings okay)?",
-        "8. How many classes would you like to take this term?",
-        "9. Do you prefer more classes on MWF or TTH?"
-    ]
-    total_q = len(questions)
+# ─── dark-friendly widget CSS ---------------------------------------
+CSS = """
+<style>
+textarea, input {
+    background:#242424 !important;
+    color:white !important;
+    caret-color:white !important;
+}
+div[data-testid="stSelectbox"] div[data-baseweb="select"],
+div[data-testid="stSelectbox"] div[data-baseweb="select"] *,
+div[data-testid="stSelectbox"] span{
+    background:#242424 !important;
+    color:white !important;
+}
+</style>
+"""
 
-    # ─── Session-state init ───────────────────────────────────────────
-    if "current_q" not in st.session_state:
-        st.session_state.current_q = 0
-    if "answers" not in st.session_state:
-        st.session_state.answers = {}
+# ─── DB bulk-save helper -------------------------------------------
+def _persist_all_answers(uid: str, answers: Dict[int, str]) -> None:
+    tr = answers.get(0)
+    if tr:
+        save_transcript(uid, tr)
 
-    curr = min(st.session_state.current_q, total_q - 1)
-    key  = f"answer_{curr}"
-    if key not in st.session_state:
-        st.session_state[key] = st.session_state.answers.get(curr, "")
+    for idx, ans in answers.items():
+        if idx == 0:
+            continue
+        txt = ans.strip() if ans else None
+        save_preference(uid, QUESTIONS[idx], txt)
+        if idx == 1 and txt:
+            fp = DEGREE_DIR / (txt.replace(" ", "_").replace("/", "_") + ".txt")
+            if fp.exists():
+                save_degree_requirements(uid, txt, fp.read_text("utf-8"))
 
-    # ─── Show current question ────────────────────────────────────────
-    st.write(questions[curr])
+# ─── review page ----------------------------------------------------
+def review_page() -> None:
+    s = st.session_state
+    skipped = sorted(s.get("skipped", set()))
 
-    # ─── Q1: PDF uploader + processing ──────────────────────────────
-    if curr == 0:
-        def _on_upload():
-            pdf = st.session_state.uploaded_file
-            if pdf is not None:
-                with st.spinner("Processing PDF…"):
-                    raw     = extract_text_from_pdf(pdf)
-                    cleaned = process_pdf_with_gemini(raw)
-                    st.session_state[key]       = cleaned
-                    st.session_state.answers[0] = cleaned
-                    st.success(f"✅ Processed {pdf.name}")
-
-        st.file_uploader(
-            "Upload your transcript (PDF)",
-            type="pdf",
-            key="uploaded_file",
-            on_change=_on_upload
-        )
-
-        user_text = st.text_area(
-            "Your classes (edit if needed):",
-            key=key,
-            height=200
-        )
-        st.session_state.answers[0] = user_text
-
+    st.header("📋 Review Your Responses")
+    if skipped:
+        st.warning("You skipped these questions:")
+        st.markdown("\n".join(f"* {QUESTIONS[i]}" for i in skipped))
     else:
-        # ─── Other questions ────────────────────────────────────────
-        answer = st.text_input("Your answer:", key=key)
-        st.session_state.answers[curr] = answer
+        st.success("All questions answered (or deliberately skipped).")
 
-    # ─── Navigation buttons ─────────────────────────────────────────
-    back_col, next_col = st.columns(2)
-    if curr > 0 and back_col.button("Back", key=f"back_{curr}"):
-        st.session_state.current_q = curr - 1
-    if curr < total_q - 1:
-        if next_col.button("Submit", key=f"next_{curr}"):
-            # ── Save transcript early if we're on Q1 ─────────────
-            if curr == 0:
-                final_transcript = st.session_state.answers.get(0, "").strip()
-                user_id = st.session_state.get("user_id")
-                if user_id:
-                    try:
-                        save_transcript(user_id, final_transcript)
-                        st.success("✅ Transcript saved.")
-                    except Exception as e:
-                        st.error(f"Error saving transcript: {e}")
-                else:
-                    st.error("No user in session; please log in again.")
-            # ───────────────────────────────────────────────────────
-            st.session_state.current_q = curr + 1
-    else:
-        if next_col.button("Finish", key="finish"):
-            # 1) grab the cleaned transcript text
-            final_transcript = st.session_state.answers.get(0, "").strip()
-            # 2) get the logged-in user’s ID
-            user_id = st.session_state.get("user_id")
-            if not user_id:
-                st.error("No user in session—please log in again.")
+    c1, c2 = st.columns(2, gap="small")
+    with c1:
+        if st.button("🔄 Go to skipped", key="goto_skipped", disabled=not skipped):
+            if skipped:
+                s.current_q = skipped[0]
+                st.rerun()
+
+    with c2:
+        if not s.get("all_submitted") and st.button("✅ Submit All Responses",
+                                                    key="submit_all"):
+            uid = s.get("user_id")
+            if not uid:
+                st.error("⚠️ Please sign in again.")
             else:
-                try:
-                    save_transcript(user_id, final_transcript)
-                    st.success("✅ Your transcript has been saved.")
-                except Exception as e:
-                    st.error(f"Error saving transcript: {e}")
+                _persist_all_answers(uid, s.answers)
+                s.all_submitted = True
+                st.success("🎉 All saved!")
+                st.balloons()
 
-    # ─── Log Out ───────────────────────────────────────────────────
-    if st.button("Log Out"):
-        st.session_state.clear()
-        st.session_state.page = "login"
+    if s.get("all_submitted"):
+        st.divider()
+        if st.button("➡️ Go to Generation", key="goto_generation"):
+            s.page = "generation"
+            st.rerun()
+
+# ─── main page ------------------------------------------------------
+def gemini_page() -> None:
+    st.markdown(CSS, unsafe_allow_html=True)
+    s = st.session_state
+
+    # session defaults
+    s.setdefault("current_q", 0)
+    s.setdefault("answers",   {})
+    s.setdefault("saved",     set())
+    s.setdefault("skipped",   set())
+    s.setdefault("all_submitted", False)
+
+    if s.get("skip_transcript") and s.current_q == 0:
+        s.current_q = 1
+
+    # review page
+    if s.current_q >= TOTAL_Q:
+        review_page()
+        return
+
+    idx = s.current_q
+    readonly = idx in s.saved
+    key = f"A_{idx}"
+
+    st.write(f"### {QUESTIONS[idx]}")
+
+    # ------------- input widgets ------------------------------------
+    if idx == 0 and not s.get("skip_transcript"):
+        # === TRANSCRIPT PAGE ========================================
+        if readonly:
+            # Already saved → show confirmation, hide uploader
+            st.success("Transcript uploaded ✅")
+        else:
+            # Uploader visible until the user hits Save
+            def _on_upload():
+                file = s.uploaded_file
+                if file:
+                    txt = process_pdf_with_gemini(extract_text_from_pdf(file))
+                    if txt:
+                        s.answers[0] = txt
+                        st.success("✅ Transcript extracted.")
+                    else:
+                        st.error("⚠️ Couldn’t extract any text from the PDF.")
+            st.file_uploader(
+                "Upload your transcript (PDF)",
+                type="pdf",
+                key="uploaded_file",
+                on_change=_on_upload,
+            )
+
+        # Textarea (read-only if transcript already saved)
+        s.answers[0] = st.text_area(
+            "Your classes (edit if needed):",
+            value=s.answers.get(0, ""),
+            key=key,
+            height=240,
+            disabled=readonly,
+        )
+
+    elif idx == 1:
+        # === PROGRAM DROPDOWN =======================================
+        if readonly:
+            st.write(f"**{s.answers[1] or '_(skipped)_'}**")
+        else:
+            s.answers[1] = st.selectbox(
+                "Select your program:", PROGRAM_OPTIONS,
+                index=PROGRAM_OPTIONS.index(
+                    s.answers.get(1, PROGRAM_OPTIONS[0])
+                ) if s.answers.get(1) else 0,
+                key=key,
+            )
+    else:
+        # === OPEN-ENDED QUESTIONS ===================================
+        if readonly:
+            st.write(s.answers.get(idx) or "_(skipped)_")
+        else:
+            s.answers[idx] = st.text_input(
+                "Your answer:",
+                value=s.answers.get(idx, ""),
+                key=key,
+            )
+
+    # ------------- navigation bar (unchanged) -----------------------
+    back, save_col, next_col, change, skip = st.columns(5, gap="small")
+
+    # BACK
+    with back:
+        if st.button("⬅️ Back", key=f"back_{idx}"):
+            if idx == 0:
+                s.page = "transcript_intro"
+                s.current_q = 0
+            else:
+                if idx == 1 and s.get("skip_transcript"):
+                    s.page = "transcript_intro"
+                    s.current_q = 0
+                else:
+                    s.current_q -= 1
+            st.rerun()
+
+    # SAVE  (validation for open-ended questions)
+    with save_col:
+        if not readonly and st.button("💾 Save", key=f"save_{idx}"):
+            if idx >= 2 and not s.answers.get(idx, "").strip():
+                st.warning("Answer cannot be blank — type something or skip.")
+            else:
+                s.saved.add(idx)
+                s.skipped.discard(idx)
+                st.success("Saved!")
+                st.rerun()
+
+    # NEXT  (enabled only if saved)
+    with next_col:
+        disabled_next = idx not in s.saved
+        if st.button("➡️ Next", key=f"next_{idx}", disabled=disabled_next):
+            s.current_q += 1
+            st.rerun()
+
+    # CHANGE
+    with change:
+        if readonly and st.button("✏️ Change", key=f"chg_{idx}"):
+            s.saved.discard(idx)
+            st.rerun()
+
+    # SKIP
+    with skip:
+        if idx != 0 and not readonly and st.button("⏭️ Skip", key=f"skip_{idx}"):
+            s.answers.pop(idx, None)
+            s.skipped.add(idx)
+            s.current_q += 1
+            st.rerun()
