@@ -3,6 +3,10 @@ import streamlit as st
 import base64
 from pathlib import Path
 
+####### new
+from views.generation import generation_page
+
+
 from views.session_choice  import session_choice_page      # ← NEW
 from views.resume          import resume_page              # ← NEW
 
@@ -95,6 +99,7 @@ def main():
         case "resume":           resume_page()           # ← NEW
         case "welcome":          welcome_page()
         case "transcript_intro": transcript_intro_page()
+        case "generation":       generation_page()
         case _:                  gemini_page()      # default to questionnaire
 
 # ────────────────────────────────────────────────────────────────────
