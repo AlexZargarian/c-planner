@@ -13,92 +13,130 @@ from database             import (
 
 # ─── initialize session state keys ─────────────────────────────────
 def _init_state():
-    st.session_state.setdefault("resume_dirty", {})   # idx → new answer
-    st.session_state.setdefault("saved_q", set())     # indices user clicked Save
-    st.session_state.setdefault("skipped_q", set())   # indices user clicked Skip
+    st.session_state.setdefault("resume_dirty", {})   # question_text → new answer
+    st.session_state.setdefault("saved_q", set())     # set of question_text saved
+    st.session_state.setdefault("skipped_q", set())   # set of question_text skipped
     st.session_state.setdefault("edit_mode", False)
     st.session_state.setdefault("upload_mode", False)
     st.session_state.setdefault("edited_tr", "")
 
-# ─── transcript editor block ────────────────────────────────────────
+# ─── transcript editor block ────────────────────────────────────
 def _transcript_block(uid: int):
+    """Transcript editor: view, edit text, or upload new PDF in edit mode."""
+    s = st.session_state
     st.subheader("📄 Transcript")
 
-    has_tr = transcript_exists(uid)
-    current_txt = fetch_transcript(uid) or ""
+    # Initialize flags
+    s.setdefault("resume_dirty", {})     # track that transcript was saved
+    s.setdefault("edit_mode", False)
+    s.setdefault("upload_mode", False)
 
-    # reset edited_tr when not editing/uploading
-    if not (st.session_state.edit_mode or st.session_state.upload_mode):
-        st.session_state.edited_tr = current_txt
+    # Fetch from DB once
+    db_txt = fetch_transcript(uid) or ""
 
-    # --- read-only view ---
-    if not st.session_state.edit_mode and not st.session_state.upload_mode:
-        if has_tr:
+    # On fresh entry into read-only, sync in-memory to DB value unless we’ve saved
+    if not (s.edit_mode or s.upload_mode) and not s.resume_dirty.get("transcript"):
+        s.edited_tr = db_txt
+
+    # Determine whether we have “some transcript” (DB or staged)
+    has_any = bool(db_txt) or s.resume_dirty.get("transcript", False)
+
+    # ─── READ-ONLY WITH “Change” ────────────────────────────────────
+    if not s.edit_mode and not s.upload_mode:
+        if has_any:
+            st.success("Transcript saved ✅")
             st.text_area(
-                "Current transcript (read-only):",
-                current_txt,
+                "Your classes (read-only):",
+                s.edited_tr,
                 height=200,
                 disabled=True,
             )
+            if st.button("✏️ Change current transcript", key="tr_change"):
+                s.edit_mode = True
+                st.rerun()
         else:
             st.info("No transcript uploaded yet.")
+            if st.button("📤 Upload new transcript", key="tr_start_upload"):
+                s.upload_mode = True
+                st.rerun()
 
-        col1, col2 = st.columns(2, gap="small")
-        with col1:
-            if has_tr and st.button("✏️ Edit current transcript", key="tr_edit"):
-                st.session_state.edit_mode = True
-        with col2:
-            if st.button("📤 Upload new transcript", key="tr_upload"):
-                st.session_state.upload_mode = True
+    # ─── EDIT MODE: text + optional PDF upload ──────────────────────
+    elif s.edit_mode:
+        st.info("📋 Edit your transcript below (or upload a new PDF):")
 
-    # --- edit existing transcript ---
-    elif st.session_state.edit_mode:
-        st.info("📋 Editing your current transcript:")
-        st.session_state.edited_tr = st.text_area(
-            "Edit transcript text:",
-            value=st.session_state.edited_tr,
+        # allow PDF upload here too
+        uploaded = st.file_uploader("Replace with PDF (optional)", type="pdf", key="tr_replace_file")
+        if uploaded:
+            txt = process_pdf_with_gemini(extract_text_from_pdf(uploaded))
+            if txt:
+                s.edited_tr = txt
+                st.success("✅ PDF processed; edit below if needed.")
+            else:
+                st.error("⚠️ No text extracted; edit manually.")
+
+        # editable textarea
+        s.edited_tr = st.text_area(
+            "Transcript text:",
+            value=s.edited_tr,
             height=200,
             key="tr_edit_area",
         )
-        save_col, cancel_col = st.columns(2, gap="small")
-        with save_col:
-            if st.button("💾 Save changes", key="tr_save_edit"):
-                upsert_transcript(uid, st.session_state.edited_tr)
-                st.session_state.resume_dirty["transcript"] = True
-                st.success("Transcript updated!")
-                st.session_state.edit_mode = False
-        with cancel_col:
-            if st.button("❌ Cancel", key="tr_cancel_edit"):
-                st.session_state.edit_mode = False
 
-    # --- upload & replace transcript ---
-    elif st.session_state.upload_mode:
-        st.info("📤 Upload new transcript PDF:")
+        # Save / Cancel row
+        disabled = not s.edited_tr.strip()
+        c1, c2 = st.columns(2, gap="small")
+        with c1:
+            if st.button("💾 Save changes", key="tr_save_edit", disabled=disabled):
+                if disabled:
+                    st.warning("Transcript cannot be blank.")
+                else:
+                    upsert_transcript(uid, s.edited_tr)
+                    s.resume_dirty["transcript"] = True
+                    st.success("Transcript updated!")
+                    s.edit_mode = False
+                    st.rerun()
+        with c2:
+            if st.button("❌ Cancel", key="tr_cancel_edit"):
+                s.edit_mode = False
+                st.rerun()
+
+    # ─── UPLOAD MODE: first-time or “Start Upload” ─────────────────
+    elif s.upload_mode:
+        st.info("📤 Upload your transcript PDF:")
         uploaded = st.file_uploader("Select PDF", type="pdf", key="tr_upload_file")
         if uploaded:
             txt = process_pdf_with_gemini(extract_text_from_pdf(uploaded))
             if txt:
-                st.session_state.edited_tr = txt
+                s.edited_tr = txt
                 st.success("✅ PDF processed; you can edit below.")
             else:
                 st.error("⚠️ No text extracted; edit below manually.")
 
-        st.session_state.edited_tr = st.text_area(
+        # editable textarea after processing
+        s.edited_tr = st.text_area(
             "Transcript text:",
-            value=st.session_state.edited_tr,
+            value=s.edited_tr,
             height=200,
             key="tr_upload_area",
         )
-        save_col, cancel_col = st.columns(2, gap="small")
-        with save_col:
-            if st.button("💾 Save new transcript", key="tr_save_upload"):
-                upsert_transcript(uid, st.session_state.edited_tr)
-                st.session_state.resume_dirty["transcript"] = True
-                st.success("New transcript saved!")
-                st.session_state.upload_mode = False
-        with cancel_col:
+
+        # Save / Cancel row
+        disabled_new = not s.edited_tr.strip()
+        c1, c2 = st.columns(2, gap="small")
+        with c1:
+            if st.button("💾 Save new transcript", key="tr_save_upload", disabled=disabled_new):
+                if disabled_new:
+                    st.warning("Transcript cannot be blank.")
+                else:
+                    upsert_transcript(uid, s.edited_tr)
+                    s.resume_dirty["transcript"] = True
+                    st.success("New transcript saved!")
+                    s.upload_mode = False
+                    st.rerun()
+        with c2:
             if st.button("❌ Cancel", key="tr_cancel_upload"):
-                st.session_state.upload_mode = False
+                s.upload_mode = False
+                st.rerun()
 
     st.divider()
 
@@ -189,6 +227,17 @@ def resume_page() -> None:
     if not uid:
         st.error("⚠️ Please sign in again.")
         return
+    
+    # If user just continued from a prior session (they have saved data),
+    # immediately enable the "Go to Generation" button.
+    # We only set this if resume_dirty is empty (i.e. no new edits staged).
+    if not st.session_state.get("resume_dirty") and (
+        transcript_exists(uid) or fetch_all_preferences(uid)
+    ):
+        st.session_state["all_submitted"] = True
+
+    # make sure our "all_submitted" flag exists
+    st.session_state.setdefault("all_submitted", False)
 
     _init_state()
     st.header("🔧 Edit Your Saved Information")
@@ -205,7 +254,7 @@ def resume_page() -> None:
 
     with submit_col:
         if st.button("✅ Submit All Updates", key="resume_submit"):
-            # Write only those questions the user clicked Save on
+            # Persist only the answers the user explicitly saved
             for question, ans in st.session_state.resume_dirty.items():
                 save_preference(uid, question, ans)
 
@@ -215,5 +264,15 @@ def resume_page() -> None:
                 st.session_state.resume_dirty.clear()
                 st.session_state.saved_q.clear()
                 st.session_state.skipped_q.clear()
+                # mark completion so we can show the Generation button
+                st.session_state.all_submitted = True
             else:
                 st.info("No changes to submit.")
+
+    # show the Generation button after successful submit
+    if st.session_state.all_submitted:
+        st.divider()
+        if st.button("➡️ Go to Generation", key="goto_generation"):
+            st.session_state.prev_page = "resume"
+            st.session_state.page = "generation"
+            st.rerun()
