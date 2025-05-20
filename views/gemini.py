@@ -93,7 +93,7 @@ def _persist_all_answers(uid: str, answers: Dict[int, str]) -> None:
 def review_page() -> None:
     s = st.session_state
     skipped = sorted(s.get("skipped", set()))
-    saved = s.get("saved", set())
+    saved   = sorted(s.get("saved", set()))
 
     st.header("📋 Review Your Responses")
     if skipped:
@@ -109,31 +109,46 @@ def review_page() -> None:
             st.rerun()
 
     with c2:
-        if not s.get("all_submitted"):
-            # If the user has saved _any_ answer (including transcript at idx=0)
-            if saved:
-                if st.button("✅ Submit All Responses", key="submit_all"):
-                    uid = s.get("user_id")
-                    if not uid:
-                        st.error("⚠️ Please sign in again.")
-                    else:
-                        _persist_all_answers(uid, s.answers)
-                        s.all_submitted = True
-                        st.success("🎉 All saved!")
-                        st.balloons()
-            else:
-                # No data saved → offer to proceed empty-handed
-                if st.button("➡️ Go to Generation (no data)", key="empty_gen"):
-                    s.prev_page = "gemini"
-                    s.page = "generation"
-                    st.rerun()
+        # Only offer “Submit All” if there's something new to write
+        if saved and not s.get("all_submitted"):
+            if st.button("✅ Submit All Responses", key="submit_all"):
+                uid = s.get("user_id")
+                if not uid:
+                    st.error("⚠️ Please sign in again.")
+                else:
+                    # Persist exactly the indices in `s.saved`
+                    for idx in saved:
+                        if idx == 0:
+                            tr = s.answers.get(0)
+                            if tr:
+                                save_transcript(uid, tr)
+                        else:
+                            txt = s.answers.get(idx, "").strip() or None
+                            save_preference(uid, QUESTIONS[idx], txt)
+                            if idx == 1 and txt:
+                                fp = DEGREE_DIR / (txt.replace(" ", "_").replace("/", "_") + ".txt")
+                                if fp.exists():
+                                    save_degree_requirements(uid, txt, fp.read_text("utf-8"))
+                    s.all_submitted = True
+                    st.success("🎉 All saved!")
+                    st.balloons()
+                    # clear out `saved` so re-submit won’t repeat writes
+                    s.saved.clear()
+        # If nothing saved at all, offer the “empty-handed” path
+        elif not saved and not s.get("all_submitted"):
+            if st.button("➡️ Go to Generation (no data)", key="empty_gen"):
+                s.prev_page = "gemini"
+                s.page      = "generation"
+                st.rerun()
 
+    # once everything’s in the DB, show the Generation button
     if s.get("all_submitted"):
         st.divider()
         if st.button("➡️ Go to Generation", key="goto_generation"):
             s.prev_page = "gemini"
-            s.page = "generation"
+            s.page      = "generation"
             st.rerun()
+
 
 
 # ─── main page ------------------------------------------------------
