@@ -107,41 +107,50 @@ def user_exists(email: str) -> bool:
 
 def save_transcript(user_id: int, transcript_text: str) -> bool:
     """
-    Inserts a finalized transcript for a given user into the transcripts table.
-    Returns True on success.
+    Ensure exactly one row per user: delete any existing transcript, then insert the new one.
+    """
+    delete_sql = "DELETE FROM transcripts WHERE user_id = %s"
+    insert_sql = """
+        INSERT INTO transcripts (user_id, transcript)
+        VALUES (%s, %s)
     """
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
-            query = """
-                INSERT INTO transcripts (user_id, transcript) 
-                VALUES (%s, %s)
-            """
-            cursor.execute(query, (user_id, transcript_text))
+            cur = conn.cursor()
+            # remove old
+            cur.execute(delete_sql, (user_id,))
+            # insert new
+            cur.execute(insert_sql, (user_id, transcript_text))
             conn.commit()
-            cursor.close()
+            cur.close()
         return True
     except mysql.connector.Error as err:
         logging.error(f"Error saving transcript: {err}")
         raise Exception("Could not save transcript")
 
 
+
 def save_degree_requirements(user_id: int, major: str, text: str) -> None:
     """
-    Insert or update this user’s degree requirements & chosen major.
-    One row per user is kept.
+    Ensure exactly one row per user: delete any existing, then insert the new major & requirements.
     """
-    sql = """
+    delete_sql = "DELETE FROM degreqs WHERE user_id = %s"
+    insert_sql = """
       INSERT INTO degreqs (user_id, major, requirements)
       VALUES (%s, %s, %s)
-      ON DUPLICATE KEY UPDATE
-          major        = VALUES(major),
-          requirements = VALUES(requirements)
     """
-    with get_db_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql, (user_id, major, text))
-        conn.commit()
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            # remove old
+            cur.execute(delete_sql, (user_id,))
+            # insert new
+            cur.execute(insert_sql, (user_id, major, text))
+            conn.commit()
+    except mysql.connector.Error as err:
+        logging.error(f"Error saving degree requirements: {err}")
+        raise Exception("Could not save degree requirements")
+
 
 
 def save_preference(user_id: int, question: str, answer: str | None) -> None:
