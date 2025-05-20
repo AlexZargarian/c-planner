@@ -40,7 +40,7 @@ PROGRAM_OPTIONS = [
     "Master of Arts in Multiplatform Journalism",
     "Master of Public Health",
     "Master of Engineering in Industrial Engineering and Systems Management",
-    "Master of Science in Computer and Information Science (MSCIS)",
+    "Master of Science in Computer and Information Science",
 ]
 
 QUESTIONS = [
@@ -53,6 +53,7 @@ QUESTIONS = [
     "👉 What time of day do you prefer having classes? (e.g., Mornings, Afternoons, Evenings)",
     "👉 How many courses would you like to take this semester?",
     "👉 Do you prefer having classes mostly on MWF (Monday/Wednesday/Friday) or TTH (Tuesday/Thursday)?",
+    "👉 Is there any additional information you’d like to share? If so, please tell us; otherwise, feel free to skip this."
 ]
 TOTAL_Q = len(QUESTIONS)
 
@@ -89,10 +90,10 @@ def _persist_all_answers(uid: str, answers: Dict[int, str]) -> None:
             if fp.exists():
                 save_degree_requirements(uid, txt, fp.read_text("utf-8"))
 
-# ─── review page ----------------------------------------------------
 def review_page() -> None:
     s = st.session_state
     skipped = sorted(s.get("skipped", set()))
+    saved = s.get("saved", set())
 
     st.header("📋 Review Your Responses")
     if skipped:
@@ -104,27 +105,36 @@ def review_page() -> None:
     c1, c2 = st.columns(2, gap="small")
     with c1:
         if st.button("🔄 Go to skipped", key="goto_skipped", disabled=not skipped):
-            if skipped:
-                s.current_q = skipped[0]
-                st.rerun()
+            s.current_q = skipped[0]
+            st.rerun()
 
     with c2:
-        if not s.get("all_submitted") and st.button("✅ Submit All Responses",
-                                                    key="submit_all"):
-            uid = s.get("user_id")
-            if not uid:
-                st.error("⚠️ Please sign in again.")
+        if not s.get("all_submitted"):
+            # If the user has saved _any_ answer (including transcript at idx=0)
+            if saved:
+                if st.button("✅ Submit All Responses", key="submit_all"):
+                    uid = s.get("user_id")
+                    if not uid:
+                        st.error("⚠️ Please sign in again.")
+                    else:
+                        _persist_all_answers(uid, s.answers)
+                        s.all_submitted = True
+                        st.success("🎉 All saved!")
+                        st.balloons()
             else:
-                _persist_all_answers(uid, s.answers)
-                s.all_submitted = True
-                st.success("🎉 All saved!")
-                st.balloons()
+                # No data saved → offer to proceed empty-handed
+                if st.button("➡️ Go to Generation (no data)", key="empty_gen"):
+                    s.prev_page = "gemini"
+                    s.page = "generation"
+                    st.rerun()
 
     if s.get("all_submitted"):
         st.divider()
         if st.button("➡️ Go to Generation", key="goto_generation"):
+            s.prev_page = "gemini"
             s.page = "generation"
             st.rerun()
+
 
 # ─── main page ------------------------------------------------------
 def gemini_page() -> None:
@@ -233,6 +243,7 @@ def gemini_page() -> None:
             else:
                 s.saved.add(idx)
                 s.skipped.discard(idx)
+                s.all_submitted = False
                 st.success("Saved!")
                 st.rerun()
 
@@ -247,6 +258,7 @@ def gemini_page() -> None:
     with change:
         if readonly and st.button("✏️ Change", key=f"chg_{idx}"):
             s.saved.discard(idx)
+            s.all_submitted = False
             st.rerun()
 
     # SKIP
