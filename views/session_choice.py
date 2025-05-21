@@ -1,6 +1,6 @@
 # ──────────────────────────── views/session_choice.py ───────────────────────────
 import streamlit as st
-from database import transcript_exists, pref_count, delete_user_data
+from database import transcript_exists, pref_count, delete_user_data, get_schedule
 
 def session_choice_page() -> None:
     """
@@ -84,3 +84,6 @@ def session_choice_page() -> None:
     if st.button("⬅️ Back to Welcome", key="back_home"):
         st.session_state.page = "welcome"
         st.rerun()
+    if get_schedule(uid) and st.button("🎉 View final schedule"):
+        st.session_state.page = "final_view"
+        st.rerun()   
