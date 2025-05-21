@@ -248,6 +248,8 @@ def delete_user_data(user_id: int) -> None:
         cur.execute("DELETE FROM transcripts WHERE user_id = %s", (user_id,))
         # delete degree requirements
         cur.execute("DELETE FROM degreqs WHERE user_id = %s", (user_id,))
+        # delete schedules
+        cur.execute("DELETE FROM schedules WHERE user_id = %s", (user_id,))
         conn.commit()
 
 
@@ -314,6 +316,28 @@ def save_generated_schedule(user_id: int, schedule_text: str) -> bool:
         logging.error(f"Error saving/updating schedule: {e}")
         return False
 
+def get_schedule(user_id: int) -> str:
+    """
+    Retrieve the previous schedule for a specific user.
+
+    Args:
+        user_id: The user's ID in the database
+
+    Returns:
+        The schedule text or empty string if not found
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT schedule_text FROM schedules WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
+                (user_id,)
+            )
+            result = cursor.fetchone()
+            return result['schedule_text'] if result else ""
+    except Exception as e:
+        print(f"Error retrieving schedule: {e}")
+        return ""
 
 # # ─── Onboarding check used in login.py ─────────────────────────────
 # def has_completed_onboarding(user_id: int) -> bool:
