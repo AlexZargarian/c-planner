@@ -32,3 +32,12 @@ CREATE TABLE IF NOT EXISTS preferences (
   UNIQUE KEY uq_pref (user_id, question),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+-- Add this to your db/init.sql file or execute as a separate migration
+
+CREATE TABLE IF NOT EXISTS schedules (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  user_id        INT          NOT NULL,
+  schedule_text  MEDIUMTEXT   NOT NULL,
+  created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

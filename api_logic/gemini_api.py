@@ -7,55 +7,78 @@ from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
+BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+
 
 def process_pdf_with_gemini(pdf_text: str) -> str:
     """
-    Call Gemini’s gemini-2.0-flash to extract a numbered list of courses.
-    Then remove any preamble so only the list remains.
+    Extract a numbered list of courses from the transcript text using Gemini Flash.
     """
     if not API_KEY:
         return pdf_text
 
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/"
-        f"models/gemini-2.0-flash:generateContent?key={API_KEY}"
-    )
+    url = f"{BASE}/gemini-2.0-flash:generateContent?key={API_KEY}"
     prompt = (
         "Extract a numbered list of course codes and names from the following transcript text. "
         "Respond with only the list (no additional sentences or headings):\n\n"
         f"{pdf_text}"
     )
     payload = {
-        "contents": [ { "parts": [ { "text": prompt } ] } ],
-        "generationConfig": {
-            "temperature": 0.2,
-            "maxOutputTokens": 1024
-        }
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
     }
-    headers = { "Content-Type": "application/json" }
+    headers = {"Content-Type": "application/json"}
 
-    try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
-        candidates = data.get("candidates", [])
-        if not candidates:
-            raise ValueError("No candidates in response")
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    if resp.status_code != 200:
+        # return the raw error for debugging
+        return f"Gemini Error ({resp.status_code}): {resp.text}"
 
-        # get raw text
-        content = candidates[0].get("content", {})
-        parts   = content.get("parts", [])
-        raw     = parts[0].get("text", "") if parts else ""
+    data = resp.json().get("candidates", [])
+    if not data:
+        return "Gemini returned no candidates."
 
-        # --- CLEANUP: drop everything before the first “1.” line ---
-        lines = raw.splitlines()
-        for i, line in enumerate(lines):
-            if re.match(r'^\s*1\.\s+', line):
-                clean = lines[i:]
-                return "\n".join(clean).strip()
+    raw = data[0]["content"]["parts"][0]["text"]
 
-        # if no “1.” found, just return raw
-        return raw.strip()
+    # drop everything before "1."
+    lines = raw.splitlines()
+    for i, line in enumerate(lines):
+        if re.match(r'^\s*1\.\s+', line):
+            return "\n".join(lines[i:]).strip()
 
-    except Exception:
-        return pdf_text.strip()
+    return raw.strip()
+
+
+def process_with_gemini(prompt: str) -> str:
+    """
+    Send a prompt to Gemini Flash to get a text answer.
+    """
+    if not API_KEY:
+        return "Error: Gemini API key not configured"
+
+    url = f"{BASE}/gemini-2.0-flash:generateContent?key={API_KEY}"
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+    headers = {"Content-Type": "application/json"}
+
+    resp = requests.post(url, headers=headers, json=payload, timeout=90)
+    if resp.status_code != 200:
+        return f"Gemini Error ({resp.status_code}): {resp.text}"
+
+    data = resp.json().get("candidates", [])
+    if not data:
+        return "Gemini returned no candidates."
+
+    return data[0]["content"]["parts"][0]["text"].strip()

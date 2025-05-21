@@ -251,7 +251,56 @@ def delete_user_data(user_id: int) -> None:
         conn.commit()
 
 
+# Add these functions to your database.py file
 
+def get_transcript_text(user_id: int) -> str:
+    """
+    Retrieve the transcript text for a specific user.
+
+    Args:
+        user_id: The user's ID in the database
+
+    Returns:
+        The transcript text or empty string if not found
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT transcript FROM transcripts WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
+                (user_id,)
+            )
+            result = cursor.fetchone()
+            return result['transcript'] if result else ""
+    except Exception as e:
+        print(f"Error retrieving transcript: {e}")
+        return ""
+
+
+def save_generated_schedule(user_id: int, schedule_text: str) -> bool:
+    """
+    Save a generated schedule to the database.
+
+    Args:
+        user_id: The user's ID in the database
+        schedule_text: The generated schedule text
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            # You would need to create a schedules table in your database first
+            cursor.execute(
+                "INSERT INTO schedules (user_id, schedule_text, created_at) VALUES (%s, %s, NOW())",
+                (user_id, schedule_text)
+            )
+            conn.commit()
+            return True
+    except Exception as e:
+        print(f"Error saving schedule: {e}")
+        return False
 
 # # ─── Onboarding check used in login.py ─────────────────────────────
 # def has_completed_onboarding(user_id: int) -> bool:

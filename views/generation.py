@@ -1,7 +1,10 @@
 # ──────────────────────────── views/generation.py ───────────────────────────
 import streamlit as st
+import pandas as pd
+from pathlib import Path
 from database import transcript_exists, fetch_all_preferences, get_db_connection
 from views.gemini import QUESTIONS
+
 
 def degree_requirements_exists(user_id: int) -> bool:
     """Return True if the user has a row in degreqs."""
@@ -11,6 +14,30 @@ def degree_requirements_exists(user_id: int) -> bool:
         cur.execute(sql, (user_id,))
         return cur.fetchone() is not None
 
+
+def get_degree_requirements(user_id: int) -> str:
+    """Return the degree requirements text for this user."""
+    sql = "SELECT requirements FROM degreqs WHERE user_id = %s LIMIT 1"
+    with get_db_connection() as conn:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(sql, (user_id,))
+        result = cur.fetchone()
+        return result["requirements"] if result else ""
+
+
+def get_transcript_text(user_id: int) -> str:
+    """Return the transcript text for this user."""
+    sql = (
+        "SELECT transcript FROM transcripts WHERE user_id = %s "
+        "ORDER BY created_at DESC LIMIT 1"
+    )
+    with get_db_connection() as conn:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(sql, (user_id,))
+        result = cur.fetchone()
+        return result["transcript"] if result else ""
+
+
 def generation_page() -> None:
     uid = st.session_state.get("user_id")
     if not uid:
@@ -18,9 +45,7 @@ def generation_page() -> None:
         return
 
     st.title("🔮 Generating Your Personalized Schedule")
-    st.write(
-        "Now, Gemini will craft your personalized schedule based on your provided data."
-    )
+    st.write("Now, Gemini will craft your personalized schedule based on your provided data.")
     st.markdown("---")
     st.subheader("Summary of Provided Data")
 
@@ -35,26 +60,122 @@ def generation_page() -> None:
     st.write(f"{mark(deg_ok)} Degree requirements")
 
     # Questionnaire
-    rows     = fetch_all_preferences(uid)
+    rows = fetch_all_preferences(uid)
     answered = {r["question"] for r in rows}
     st.markdown("**Questionnaire Responses:**")
-    for q in QUESTIONS[1:]:   # skip QUESTIONS[0]
+    for q in QUESTIONS[1:]:  # skip QUESTIONS[0]
         st.write(f"{mark(q in answered)} {q}")
 
     st.markdown("---")
 
-    # Determine where we came from
     prev = st.session_state.get("prev_page", "gemini")
+    back_col, gen_col = st.columns([1, 1], gap="small")
 
-    back_col, gen_col = st.columns([1,1], gap="small")
     with back_col:
         if st.button("⬅️ Back", key="gen_back"):
-            # clear the "already submitted" flag so review shows Submit again
-            # st.session_state.all_submitted = False
-            # return to where we came from
             st.session_state.page = "resume" if prev == "resume" else "gemini"
             st.rerun()
 
     with gen_col:
         if st.button("🧙‍♂️ Generate my Schedule", key="gen_submit"):
-            st.info("✨ Schedule generation coming soon!")
+            with st.spinner("✨ Generating your personalized schedule..."):
+                try:
+                    # Step 1: Read courses data
+                    courses_file = Path("data") / "courses.csv"
+                    if not courses_file.exists():
+                        st.error("Courses data file not found!")
+                        return
+
+                    courses_data = pd.read_csv(courses_file)
+                    courses_text = courses_data.to_csv(index=False)
+
+                    # Step 2: Get user transcript
+                    transcript_text = get_transcript_text(uid) if tr_ok else ""
+
+                    # Step 3: Get degree requirements
+                    degree_req = get_degree_requirements(uid) if deg_ok else ""
+
+                    # Step 4: Get preferences
+                    preferences = {row["question"]: row.get("answer", "Not provided") for row in rows}
+
+                    # Step 5: Generate schedule
+                    schedule = generate_schedule(
+                        courses_text,
+                        transcript_text,
+                        degree_req,
+                        preferences
+                    )
+
+                    # Step 6: Save and redirect
+                    st.session_state.generated_schedule = schedule
+                    st.session_state.page = "gemini_answer"
+                    st.rerun()
+
+                except Exception as e:
+                    st.error(f"Error generating schedule: {e}")
+
+
+def generate_schedule(courses_data, transcript_text, degree_requirements, preferences):
+    """
+    Generate a concise recommendation:
+      1) Bullet points of the reasons/factors for choosing courses
+      2) Bullet list of the selected courses only
+      3) Include final scheduling guidelines
+
+    Ensure no time conflicts, pick only one option if alternatives exist,
+    include day abbreviations, and adhere as closely as possible to user requirements.
+    """
+    from api_logic.gemini_api import process_with_gemini
+
+    prompt = f"""
+You are an expert academic advisor. Below is all the data you need.
+
+AVAILABLE COURSES:
+{courses_data}
+
+ALREADY TAKEN:
+{transcript_text or 'None'}
+
+DEGREE REQUIREMENTS:
+{degree_requirements or 'None'}
+
+STUDENT PREFERENCES:
+"""
+    if preferences:
+        for question, answer in preferences.items():
+            prompt += f"- {question.strip('👉 ')}: {answer}\n"
+    prompt += "\n"
+
+    prompt += f"""
+IMPORTANT - YOUR RESPONSE MUST FOLLOW THIS EXACT FORMAT:
+
+1. **Your Recommended Schedule**
+2. **Factors Considered:**
+* Fulfils degree requirements
+* Adheres to time preferences
+* Considers courses available in the current semester
+* Avoids courses already taken
+* Ensures no time conflicts between selected courses
+* For courses with multiple sections, select the section that best fits the student's schedule; do not offer multiple options.
+* Include day abbreviations (e.g., MON, TUE, WED, THU, FRI) before times.
+* Adheres as closely as possible to student preferences
+
+3. **Schedule**
+List each recommended course on its own bullet line. Do NOT merge alternatives into one line; pick only one course or section.
+
+Example format:
+* CS310 Theory of Computing (TT, 10:30am-11:20am, Suren Khachatryan) - Core
+* CS340 Machine Learning (MWF, 10:30am-11:20am, Monika Stepanyan) - Core
+
+General guidelines:
+1. Don't recommend courses already taken.
+2. Prioritize degree requirements.
+3. Respect time preferences and constraints.
+4. Ensure no time conflicts.
+5. Pick one course per requirement; no combined choices.
+6. For courses with multiple sections, choose the best fitting section.
+7. Include day abbreviations before times.
+8. Balance course load appropriately.
+"""
+
+    return process_with_gemini(prompt)

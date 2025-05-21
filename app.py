@@ -5,12 +5,13 @@ from pathlib import Path
 
 ####### new
 from views.generation import generation_page
+from views.gemini_answer import gemini_answer_page  # Add this line
 
 
-from views.session_choice  import session_choice_page      # ← NEW
-from views.resume          import resume_page              # ← NEW
+from views.session_choice  import session_choice_page
+from views.resume          import resume_page
 
-from views.landing         import landing_page           # already imported
+from views.landing         import landing_page
 from views.login            import login_page
 from views.signup           import signup_page
 from views.welcome          import welcome_page
@@ -79,10 +80,10 @@ def main():
 
     # 4️⃣  Navigation state – default to **landing**
     if "page" not in st.session_state:
-        st.session_state.page = "landing"           # ← UPDATED
+        st.session_state.page = "landing"
 
     # 5️⃣  Log-Out button only on authenticated/inner pages
-    if st.session_state.page not in ("login", "signup", "landing"):  # ← UPDATED
+    if st.session_state.page not in ("login", "signup", "landing"):
         spacer, logout_col = st.columns([8, 1])
         with logout_col:
             if st.button("Log Out", key="logout_btn"):
@@ -92,17 +93,17 @@ def main():
 
     # 6️⃣  Page router
     match st.session_state.page:
-        case "landing":          landing_page()     # ← NEW
+        case "landing":          landing_page()
         case "login":            login_page()
         case "signup":           signup_page()
-        case "session_choice":   session_choice_page()   # ← NEW
-        case "resume":           resume_page()           # ← NEW
+        case "session_choice":   session_choice_page()
+        case "resume":           resume_page()
         case "welcome":          welcome_page()
         case "transcript_intro": transcript_intro_page()
         case "generation":       generation_page()
+        case "gemini_answer":    gemini_answer_page()  # Add this line
         case _:                  gemini_page()      # default to questionnaire
 
 # ────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     main()
-
