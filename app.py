@@ -17,6 +17,7 @@ from views.signup           import signup_page
 from views.welcome          import welcome_page
 from views.transcript_intro import transcript_intro_page
 from views import gemini                                  # brings in the module once
+from views.final_view      import final_view_page
 gemini_page = gemini.gemini_page
 
 
@@ -102,6 +103,7 @@ def main():
         case "transcript_intro": transcript_intro_page()
         case "generation":       generation_page()
         case "gemini_answer":    gemini_answer_page()  # Add this line
+        case "final_view":       final_view_page()
         case _:                  gemini_page()      # default to questionnaire
 
 # ────────────────────────────────────────────────────────────────────
