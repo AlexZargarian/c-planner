@@ -6,6 +6,7 @@ import re
 def gemini_answer_page() -> None:
     st.title("✨ Your Personalized Schedule")
 
+#
     # Check if schedule has been generated
     if "generated_schedule" not in st.session_state:
         st.error("No schedule has been generated yet. Please go back and generate a schedule first.")
