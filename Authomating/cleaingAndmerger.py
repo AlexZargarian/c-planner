@@ -3,14 +3,14 @@
 cleanAndmerger.py
 
 Reads 'automated_scrape_jenzabar.csv', cleans and transforms
-the course titles to extract course codes, levels, types, prerequisites, and
-then writes out 'final_schedule.csv' with columns in the specified order.
+course data, adds year and semester, and writes out 'final_schedule.csv'.
 """
 
 import pandas as pd
 import re
 import sys
 import os
+from datetime import datetime, timedelta
 
 DEFAULT_PREREQ = "No restrictions, except that any prerequisites must already be completed"
 
@@ -42,6 +42,33 @@ MAJOR_MAP = {
     "TEFL": "Teaching English as a Foreign Language Program's core or track elective course",
     "CBE": "CBE Program's core or track elective course"
 }
+
+def get_school_year_and_semester():
+    """
+    Compute current academic year string and semester code:
+      - 1: Fall
+      - 2: Spring
+      - 3: Summer
+    """
+    today = datetime.now().date()
+    year = today.year
+    # Academic year starting in fall
+    start = year if today.month >= 8 else year - 1
+    school_year_str = f"{start}{str(start + 1)[2:]}"
+
+    # Determine semester by month:
+    # Aug(8)–Dec(12) → Fall (1)
+    # Jan(1)–Apr(4) → Spring (2)
+    # May(5)–Jul(7) → Summer (3)
+    month = today.month
+    if 8 <= month <= 12:
+        sem_value = 1
+    elif 1 <= month <= 4:
+        sem_value = 2
+    else:
+        sem_value = 3
+
+    return school_year_str, sem_value
 
 def get_course_level(code: str) -> str:
     m = re.search(r'(\d+)', str(code))
@@ -76,7 +103,7 @@ def main():
     # 2) Extract code
     df['course_code'] = df['course_title'].str.extract(r'\(([^)]*)\)\s*$', expand=False)
 
-    # 3) Strip off the parentheses from title
+    # 3) Strip parentheses from title
     df['course_title'] = (
         df['course_title']
           .str.replace(r'\s*\([^)]*\)\s*$', '', regex=True)
@@ -87,7 +114,7 @@ def main():
     df['course_level'] = df['course_code'].apply(get_course_level)
     df['course_type']  = df['course_code'].apply(get_course_type)
 
-    # 5) Ensure lowercase 'prerequisites' column is populated
+    # 5) Populate 'prerequisites'
     col = 'prerequisites'
     if col not in df.columns:
         df[col] = DEFAULT_PREREQ
@@ -100,27 +127,21 @@ def main():
     if 'times' in df.columns:
         df['times'] = df['times'].fillna('TBD').astype(str)
 
-    # 7) Reorder columns
+    # 7) Add year & semester columns
+    year_str, sem_value = get_school_year_and_semester()
+    df['year'] = year_str
+    df['semester'] = sem_value
+
+    # 8) Reorder columns
     desired_order = [
-        'course_title',
-        'course_code',
-        'prerequisites',
-        'section',
-        'session',
-        'campus',
-        'instructor',
-        'times',
-        'location',
-        'course_description',
-        'themes',
-        'restriction',
-        'course_level',
-        'course_type'
+        'course_title', 'course_code', 'prerequisites', 'section', 'session',
+        'campus', 'instructor', 'times', 'location', 'course_description',
+        'themes', 'restriction', 'course_level', 'course_type', 'year', 'semester'
     ]
     cols_to_save = [c for c in desired_order if c in df.columns]
     df = df[cols_to_save]
 
-    # 8) Write out
+    # 9) Write out
     df.to_csv(output_csv, index=False)
     print(f"Wrote final_schedule.csv with columns: {', '.join(cols_to_save)}")
 
