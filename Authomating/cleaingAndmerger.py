@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-full_schedule_builder.py
+cleanAndmerger.py
 
-Reads 'jenzabar_courses_all_pages.csv', cleans and transforms
-the course titles to extract course codes, levels, types, and prerequisites,
-and writes out 'final_schedule.csv'.
+Reads 'automated_scrape_jenzabar.csv', cleans and transforms
+the course titles to extract course codes, levels, types, prerequisites, and
+then writes out 'final_schedule.csv' with columns in the specified order.
 """
 
 import pandas as pd
@@ -14,7 +14,6 @@ import os
 
 DEFAULT_PREREQ = "No restrictions, except that any prerequisites must already be completed"
 
-# 1. Mapping of course code prefixes to full major descriptions
 MAJOR_MAP = {
     "BSN": "Nursing Program's core or track elective course",
     "BUS": "Business Program's core or track elective course",
@@ -45,87 +44,85 @@ MAJOR_MAP = {
 }
 
 def get_course_level(code: str) -> str:
-    """
-    Determine the course level by looking at the first digit in the course code.
-    - first digit '1' → 'Lower level'
-    - first digit '2' → 'Upper level'
-    - first digit '3' → 'Masters level'
-    Otherwise, returns 'Unknown'.
-    """
-    if not isinstance(code, str):
-        return 'Unknown'
-    m = re.search(r'(\d+)', code)
+    m = re.search(r'(\d+)', str(code))
     if not m:
         return 'Unknown'
     first_digit = m.group(1)[0]
-    return {
-        '1': 'Lower level',
-        '2': 'Upper level',
-        '3': 'Masters level'
-    }.get(first_digit, 'Unknown')
+    return {'1': 'Lower level', '2': 'Upper level', '3': 'Masters level'}.get(first_digit, 'Unknown')
 
 def get_course_type(code: str) -> str:
-    """
-    Determine the course type by extracting the alphabetic prefix of the code
-    and mapping it via MAJOR_MAP. Defaults to 'Unknown' if not found.
-    """
-    if not isinstance(code, str):
-        return 'Unknown'
-    m = re.match(r'^([A-Za-z]+)', code)
+    m = re.match(r'^([A-Za-z]+)', str(code))
     if not m:
         return 'Unknown'
-    prefix = m.group(1).upper()
-    return MAJOR_MAP.get(prefix, 'Unknown')
+    return MAJOR_MAP.get(m.group(1).upper(), 'Unknown')
 
 def main():
-    input_csv = 'jenzabar_courses_all_pages.csv'
+    input_csv = 'automated_scrape_jenzabar.csv'
     output_csv = 'final_schedule.csv'
 
     if not os.path.isfile(input_csv):
-        print(f"Error: cannot find '{input_csv}' in the current directory.", file=sys.stderr)
+        print(f"Error: cannot find '{input_csv}'", file=sys.stderr)
         sys.exit(1)
 
-    # Load the courses CSV
     df = pd.read_csv(input_csv)
 
-    # 2. Remove literal "(Prerequisite)" from course titles
+    # 1) Clean title
+    df['course_title'] = (
+        df['course_title'].astype(str)
+          .str.replace(r'\(Prerequisite\)', '', regex=True)
+          .str.strip()
+    )
+
+    # 2) Extract code
+    df['course_code'] = df['course_title'].str.extract(r'\(([^)]*)\)\s*$', expand=False)
+
+    # 3) Strip off the parentheses from title
     df['course_title'] = (
         df['course_title']
-        .astype(str)
-        .str.replace(r'\(Prerequisite\)', '', regex=True)
-        .str.strip()
+          .str.replace(r'\s*\([^)]*\)\s*$', '', regex=True)
+          .str.strip()
     )
 
-    # 3. Extract the course code from the final parentheses
-    df['course_code'] = df['course_title'].str.extract(
-        r'\(([^)]*)\)\s*$',  # capture contents of last (...)
-        expand=False
-    )
-
-    # 4. Remove that trailing parenthetical from the title
-    df['course_title'] = (
-        df['course_title']
-        .str.replace(r'\s*\([^)]*\)\s*$', '', regex=True)
-        .str.strip()
-    )
-
-    # 5. Compute course level
+    # 4) Compute level & type
     df['course_level'] = df['course_code'].apply(get_course_level)
+    df['course_type']  = df['course_code'].apply(get_course_type)
 
-    # 6. Compute course type based on code prefix
-    df['course_type'] = df['course_code'].apply(get_course_type)
-
-    # 7. Ensure 'prerequisites' column exists and is populated
+    # 5) Ensure lowercase 'prerequisites' column is populated
     col = 'prerequisites'
     if col not in df.columns:
         df[col] = DEFAULT_PREREQ
     else:
-        df[col] = df[col].fillna('').astype(str)
-        df[col] = df[col].apply(lambda x: x if x.strip() else DEFAULT_PREREQ)
+        df[col] = df[col].fillna('').astype(str).apply(
+            lambda x: x if x.strip() else DEFAULT_PREREQ
+        )
 
-    # 8. Write out the final schedule
+    # 6) Fill missing times with "TBD"
+    if 'times' in df.columns:
+        df['times'] = df['times'].fillna('TBD').astype(str)
+
+    # 7) Reorder columns
+    desired_order = [
+        'course_title',
+        'course_code',
+        'prerequisites',
+        'section',
+        'session',
+        'campus',
+        'instructor',
+        'times',
+        'location',
+        'course_description',
+        'themes',
+        'restriction',
+        'course_level',
+        'course_type'
+    ]
+    cols_to_save = [c for c in desired_order if c in df.columns]
+    df = df[cols_to_save]
+
+    # 8) Write out
     df.to_csv(output_csv, index=False)
-    print(f"Successfully wrote cleaned schedule to '{output_csv}'")
+    print(f"Wrote final_schedule.csv with columns: {', '.join(cols_to_save)}")
 
 if __name__ == '__main__':
     main()
