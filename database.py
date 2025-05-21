@@ -279,28 +279,41 @@ def get_transcript_text(user_id: int) -> str:
 
 def save_generated_schedule(user_id: int, schedule_text: str) -> bool:
     """
-    Save a generated schedule to the database.
-
-    Args:
-        user_id: The user's ID in the database
-        schedule_text: The generated schedule text
-
-    Returns:
-        True if successful, False otherwise
+    Insert or update the generated schedule for this user.
     """
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # You would need to create a schedules table in your database first
-            cursor.execute(
-                "INSERT INTO schedules (user_id, schedule_text, created_at) VALUES (%s, %s, NOW())",
-                (user_id, schedule_text)
-            )
+            cur = conn.cursor()
+            # see if this user already has a schedule
+            cur.execute("SELECT id FROM schedules WHERE user_id = %s LIMIT 1", (user_id,))
+            row = cur.fetchone()
+            if row:
+                # update existing
+                sched_id = row[0]
+                cur.execute(
+                    """
+                    UPDATE schedules
+                    SET schedule_text = %s,
+                        created_at = NOW()
+                    WHERE id = %s
+                    """,
+                    (schedule_text, sched_id)
+                )
+            else:
+                # insert new
+                cur.execute(
+                    """
+                    INSERT INTO schedules (user_id, schedule_text, created_at)
+                    VALUES (%s, %s, NOW())
+                    """,
+                    (user_id, schedule_text)
+                )
             conn.commit()
-            return True
+        return True
     except Exception as e:
-        print(f"Error saving schedule: {e}")
+        logging.error(f"Error saving/updating schedule: {e}")
         return False
+
 
 # # ─── Onboarding check used in login.py ─────────────────────────────
 # def has_completed_onboarding(user_id: int) -> bool:
