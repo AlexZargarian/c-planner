@@ -3,9 +3,11 @@
 schedule_automation.py
 
 Defines ScheduleAutomation, which runs in sequence:
-  1) cleaingAndmerger.py
-  2) scraper_jenzabar.py
-  3) cleaingAndmerger.py (final schedule builder)
+  1) aua.am_scraper.py (AUA scraper)
+  2) scraper_jenzabar.py (Jenzabar scraper)
+  3) cleaingAndmerger.py (clean and merge)
+
+Place this alongside your scripts and run to orchestrate all steps.
 """
 
 import subprocess
@@ -15,21 +17,21 @@ import os
 class ScheduleAutomation:
     def __init__(
         self,
-        cluster_script: str = "cleaingAndmerger.py",
-        scraper_script: str = "scraper_jenzabar.py",
-        builder_script: str = "cleaingAndmerger.py"
+        aua_scraper: str = "aua.am_scraper.py",
+        jenzabar_scraper: str = "scraper_jenzabar.py",
+        cleaner: str = "cleaingAndmerger.py"
     ):
         """
-        :param cluster_script: Path to your initial clustering script.
-        :param scraper_script: Path to your Jenzabar scraper script.
-        :param builder_script: Path to your final schedule builder (reuse of findingClusters).
+        :param aua_scraper: Path to the AUA course scraper script.
+        :param jenzabar_scraper: Path to the Jenzabar scraper script.
+        :param cleaner: Path to the clean and merge script ("cleaingAndmerger.py").
         """
-        self.cluster_script = cluster_script
-        self.scraper_script = scraper_script
-        self.builder_script = builder_script
+        self.aua_scraper = aua_scraper
+        self.jenzabar_scraper = jenzabar_scraper
+        self.cleaner = cleaner
 
     def _run_script(self, script_path: str):
-        """Helper to invoke a Python script and wait for it to finish."""
+        """Helper: invoke a Python script and wait for completion."""
         if not os.path.isfile(script_path):
             raise FileNotFoundError(f"Script not found: {script_path}")
         print(f"\n▶ Running `{script_path}`...")
@@ -40,29 +42,29 @@ class ScheduleAutomation:
 
     def run_all(self):
         """
-        Run the three steps in order:
-          1) clustering
-          2) scraping
-          3) final schedule build
+        Execute all steps in order:
+          1) AUA scraper
+          2) Jenzabar scraper
+          3) Cleaner & merger
         """
-        # Step 1: initial clustering
-        self._run_script(self.cluster_script)
+        # Step 1: AUA scraping
+        self._run_script(self.aua_scraper)
 
-        # Step 2: scrape Jenzabar data
-        self._run_script(self.scraper_script)
+        # Step 2: Jenzabar scraping
+        self._run_script(self.jenzabar_scraper)
 
-        # Step 3: final schedule builder
-        self._run_script(self.builder_script)
+        # Step 3: Cleaning and merging
+        self._run_script(self.cleaner)
 
 if __name__ == "__main__":
     try:
         sa = ScheduleAutomation(
-            cluster_script="cleaingAndmerger.py",
-            scraper_script="scraper_jenzabar.py",
-            builder_script="cleaingAndmerger.py"
+            aua_scraper="aua.am_scraper.py",
+            jenzabar_scraper="scraper_jenzabar.py",
+            cleaner="cleaingAndmerger.py"
         )
         sa.run_all()
-        print("\n🎉 All steps completed.")
+        print("\n🎉 All tasks completed successfully.")
     except Exception as e:
-        print(f"\n❌ Error during automation: {e}", file=sys.stderr)
+        print(f"\n❌ Automation error: {e}", file=sys.stderr)
         sys.exit(1)

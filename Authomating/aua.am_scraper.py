@@ -5,6 +5,7 @@ import os
 
 def scrape_aua_courses(url, output_csv_filename='aua_cluster_scraped.csv'):
     """
+    aua.am-scraper.py
     Scrapes course information from the given URL and saves it to a CSV file.
 
     Args:
