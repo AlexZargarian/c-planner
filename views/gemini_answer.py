@@ -3,14 +3,19 @@ import streamlit as st
 import re
 import pandas as pd
 from pathlib import Path
+import time
 
-from database import transcript_exists, fetch_all_preferences
+from database import transcript_exists, fetch_all_preferences, get_schedule
 from views.generation import (
     generate_schedule,
     get_transcript_text,
     get_degree_requirements,
     degree_requirements_exists,
 )
+
+from views.gemini import QUESTIONS
+from views.gemini import save_preference
+
 
 def gemini_answer_page() -> None:
     st.title("✨ Your Personalized Schedule")
@@ -68,7 +73,7 @@ def gemini_answer_page() -> None:
     st.markdown("---")
 
     # 4) Action buttons
-    col1, col2, col3 = st.columns(3, gap="small")
+    col1, col2, col3, col4 = st.columns(4, gap="small")
 
     # Back
     with col1:
@@ -106,7 +111,8 @@ def gemini_answer_page() -> None:
                     courses_text,
                     transcript_text,
                     degree_req,
-                    preferences
+                    preferences,
+                    get_schedule(uid)
                 )
                 st.session_state.generated_schedule = new_schedule
 
@@ -125,3 +131,24 @@ def gemini_answer_page() -> None:
                     st.success("🎉 Schedule saved to your account!")
                 else:
                     st.error("❌ Failed to save schedule. Try again later.")
+    # View final schedule
+    with col4:
+        if get_schedule(uid) and st.button("🎉 View final schedule"):
+            st.session_state.page = "final_view"
+            st.rerun()                
+
+    st.markdown("---")
+    with st.expander("➕ Provide Additional Details"):
+        additional_details = st.text_input(
+            "Add any comments, preferences, or make changes for your schedule:",
+            key="additional_details"
+        )
+        if st.button("Submit Details", key="submit_details"):
+            st.success("Your additional details have been submitted!")
+            time.sleep(3)
+            # Save the info of the result in the last index of questions
+            uid = st.session_state.get("user_id")
+            last_question = QUESTIONS[-1]
+            save_preference(uid, last_question, additional_details)
+            st.session_state.page = "gemini_answer"
+            st.rerun()                
