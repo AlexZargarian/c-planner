@@ -115,7 +115,7 @@ def generation_page() -> None:
                     st.error(f"Error generating schedule: {e}")
 
 
-def generate_schedule(courses_data, transcript_text, degree_requirements, preferences):
+def generate_schedule(courses_data, transcript_text, degree_requirements, preferences, prev_schedule=None):
     """
     Generate a concise recommendation:
       1) Bullet points of the reasons/factors for choosing courses
@@ -177,5 +177,9 @@ General guidelines:
 7. Include day abbreviations before times.
 8. Balance course load appropriately.
 """
-
+    if prev_schedule:
+        prompt += f"\nConsider following schedule provided by you.:\n{prev_schedule}\n"
+        prompt += f"\nMake sure to follow user preferences to create a new schedule.\n"
+        
+    
     return process_with_gemini(prompt)
