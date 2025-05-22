@@ -12,8 +12,13 @@ from database             import (
     get_db_connection,      # new import so we can DELETE/INSERT transcripts
 )
 
-# ─── initialize session state keys ─────────────────────────────────
+# ────────────────────────────── Helpers ──────────────────────────────
+
 def _init_state():
+    """
+    Initializes all the required keys in `st.session_state` for tracking 
+    edits to transcript and questionnaire responses.
+    """
     st.session_state.setdefault("resume_dirty", {})   # key → new value (str), special key "transcript"
     st.session_state.setdefault("saved_q", set())     # question_text keys the user clicked Save on
     st.session_state.setdefault("skipped_q", set())   # question_text keys the user clicked Skip on
@@ -21,30 +26,30 @@ def _init_state():
     st.session_state.setdefault("upload_mode", False) # transcript upload mode
     st.session_state.setdefault("edited_tr", "")      # staged transcript text
 
-# ─── transcript editor block ────────────────────────────────────
+
+# ────────────────────── Transcript Section ──────────────────────────
+
 def _transcript_block(uid: int):
+    """
+    Handles all UI and logic for viewing, editing, and uploading transcripts.
+    It supports 3 modes: view, edit existing, and first-time upload.
+    """
     s = st.session_state
     st.subheader("📄 Transcript")
 
-    # Fetch from DB once
     db_txt = fetch_transcript(uid) or ""
 
-    # On first render (not editing/uploading, and no staged change), seed edited_tr from DB
+    # Initialize edited_tr for first render
     if not (s.edit_mode or s.upload_mode) and "transcript" not in s.resume_dirty:
         s.edited_tr = db_txt
 
     has_content = bool(db_txt) or ("transcript" in s.resume_dirty)
 
-    # ─── read-only view ───────────────────────────────────────────
+    # ───── View mode ─────
     if not s.edit_mode and not s.upload_mode:
         if has_content:
             st.success("Transcript provided ✅")
-            st.text_area(
-                "Your transcript (read-only):",
-                s.edited_tr,
-                height=200,
-                disabled=True,
-            )
+            st.text_area("Your transcript (read-only):", s.edited_tr, height=200, disabled=True)
             if st.button("✏️ Change transcript", key="tr_change"):
                 s.edit_mode = True
                 st.rerun()
@@ -54,12 +59,10 @@ def _transcript_block(uid: int):
                 s.upload_mode = True
                 st.rerun()
 
-    # ─── edit existing transcript ───────────────────────────────────
+    # ───── Edit mode ─────
     elif s.edit_mode:
         st.info("📋 Edit your transcript below (or upload new PDF):")
-        uploaded = st.file_uploader(
-            "Replace with PDF (optional)", type="pdf", key="tr_replace_file"
-        )
+        uploaded = st.file_uploader("Replace with PDF (optional)", type="pdf", key="tr_replace_file")
         if uploaded:
             txt = process_pdf_with_gemini(extract_text_from_pdf(uploaded))
             if txt:
@@ -68,12 +71,7 @@ def _transcript_block(uid: int):
             else:
                 st.error("⚠️ No text extracted; edit manually.")
 
-        s.edited_tr = st.text_area(
-            "Transcript text:",
-            value=s.edited_tr,
-            height=200,
-            key="tr_edit_area",
-        )
+        s.edited_tr = st.text_area("Transcript text:", value=s.edited_tr, height=200, key="tr_edit_area")
 
         disabled = not s.edited_tr.strip()
         c1, c2 = st.columns(2, gap="small")
@@ -91,12 +89,10 @@ def _transcript_block(uid: int):
                 s.edit_mode = False
                 st.rerun()
 
-    # ─── first-time upload mode ─────────────────────────────────────
+    # ───── Upload mode ─────
     elif s.upload_mode:
         st.info("📤 Upload your transcript PDF:")
-        uploaded = st.file_uploader(
-            "Select PDF", type="pdf", key="tr_upload_file"
-        )
+        uploaded = st.file_uploader("Select PDF", type="pdf", key="tr_upload_file")
         if uploaded:
             txt = process_pdf_with_gemini(extract_text_from_pdf(uploaded))
             if txt:
@@ -105,12 +101,7 @@ def _transcript_block(uid: int):
             else:
                 st.error("⚠️ No text extracted; edit manually.")
 
-        s.edited_tr = st.text_area(
-            "Transcript text:",
-            value=s.edited_tr,
-            height=200,
-            key="tr_upload_area",
-        )
+        s.edited_tr = st.text_area("Transcript text:", value=s.edited_tr, height=200, key="tr_upload_area")
 
         disabled_new = not s.edited_tr.strip()
         c1, c2 = st.columns(2, gap="small")
@@ -130,8 +121,14 @@ def _transcript_block(uid: int):
 
     st.divider()
 
-# ─── questionnaire editor block ────────────────────────────────────
+
+# ─────────────────── Questionnaire Section ─────────────────────────
+
 def _question_block(uid: int):
+    """
+    Renders each question from the questionnaire and handles editing,
+    saving, and skipping of answers.
+    """
     st.subheader("📝 Questionnaire answers")
     try:
         rows = fetch_all_preferences(uid)
@@ -148,6 +145,7 @@ def _question_block(uid: int):
         q = QUESTIONS[idx]
         st.markdown(f"**{q}**")
 
+        # Handle skipped question
         if q in skipped_q:
             st.write("_(skipped)_")
             if st.button("↩️ Undo Skip", key=f"unskip_{idx}"):
@@ -156,6 +154,7 @@ def _question_block(uid: int):
             st.markdown("---")
             continue
 
+        # Handle saved question
         if q in saved_q:
             st.write(edits.get(q, saved_map.get(q, "")))
             if st.button("✏️ Change", key=f"change_{idx}"):
@@ -165,19 +164,17 @@ def _question_block(uid: int):
             st.markdown("---")
             continue
 
+        # Editable input field
         current = edits.get(q, saved_map.get(q, ""))
         if idx == 1:
-            val = st.selectbox(
-                "",
-                PROGRAM_OPTIONS,
-                index=(PROGRAM_OPTIONS.index(current)
-                       if current in PROGRAM_OPTIONS else 0),
-                key=f"input_{idx}",
-            )
+            val = st.selectbox("", PROGRAM_OPTIONS,
+                               index=(PROGRAM_OPTIONS.index(current)
+                                      if current in PROGRAM_OPTIONS else 0),
+                               key=f"input_{idx}")
         else:
             val = st.text_input("", value=current, key=f"input_{idx}")
 
-        col_s, col_k = st.columns([1,1], gap="small")
+        col_s, col_k = st.columns([1, 1], gap="small")
         with col_s:
             if st.button("💾 Save", key=f"save_{idx}"):
                 if not val.strip():
@@ -199,14 +196,20 @@ def _question_block(uid: int):
 
         st.markdown("---")
 
-# ─── page entrypoint -----------------------------------------------
+
+# ─────────────────────── Entrypoint ───────────────────────────────
+
 def resume_page() -> None:
+    """
+    Main function for the Resume page. It shows the transcript and questionnaire sections,
+    handles updates, and transitions to the generation page when ready.
+    """
     uid = st.session_state.get("user_id")
     if not uid:
         st.error("⚠️ Please sign in again.")
         return
 
-    # if continuing and no new edits, allow direct “Go to Generation”
+    # Set submission-ready flag if no changes needed
     if (
         not st.session_state.get("resume_dirty")
         and (transcript_exists(uid) or fetch_all_preferences(uid))
@@ -228,22 +231,19 @@ def resume_page() -> None:
 
     with submit_col:
         if st.button("✅ Submit All Updates", key="resume_submit"):
-            # 1) transcript: delete old + insert new
+            # Save new transcript if edited
             if "transcript" in st.session_state.resume_dirty:
                 new_txt = st.session_state.resume_dirty.pop("transcript")
                 with get_db_connection() as conn:
                     cur = conn.cursor()
-                    cur.execute(
-                        "DELETE FROM transcripts WHERE user_id = %s",
-                        (uid,)
-                    )
+                    cur.execute("DELETE FROM transcripts WHERE user_id = %s", (uid,))
                     cur.execute(
                         "INSERT INTO transcripts (user_id, transcript) VALUES (%s, %s)",
                         (uid, new_txt)
                     )
                     conn.commit()
 
-            # 2) program & degreqs
+            # Save program preference and degree requirements
             prog_q = QUESTIONS[1]
             if prog_q in st.session_state.resume_dirty:
                 new_prog = st.session_state.resume_dirty.pop(prog_q)
@@ -254,17 +254,18 @@ def resume_page() -> None:
                 if fp.exists():
                     save_degree_requirements(uid, new_prog, fp.read_text("utf-8"))
 
-            # 3) all other prefs
+            # Save all other edited preferences
             for question, ans in st.session_state.resume_dirty.items():
                 save_preference(uid, question, ans)
 
-            # clear staging
+            # Clear staging state
             st.session_state.resume_dirty.clear()
             st.session_state.saved_q.clear()
             st.session_state.skipped_q.clear()
             st.success("🎉 All your changes have been saved!")
             st.session_state.all_submitted = True
 
+    # Offer transition to generation page
     if st.session_state.all_submitted:
         st.divider()
         if st.button("➡️ Go to Generation", key="goto_generation"):
