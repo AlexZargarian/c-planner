@@ -4,7 +4,7 @@
 
 **C-Planner** is a university course planner developed for the **American University of Armenia (AUA)**. It leverages **Gemini AI** to generate **personalized course schedules** based on a student's transcript, preferences, and degree requirements.
 
-This tool supports **undergraduate and graduate programs**, incorporates **General Education Cluster requirements**, and integrates real-time course data scraped from **Sonis Jenzabar** and it also uses the respective degree requirements derived manually for each program from AUA's website.
+This tool supports **undergraduate and graduate programs**, integrates real-time course data scraped from **Sonis Jenzabar** and it also uses the respective degree requirements derived manually for each program from AUA's website.
 
 Users can iteratively refine their schedule and export it as an `.ics` file for calendar use. It features an interactive interface built with **Streamlit** and utilizes **Docker** for containerized deployment.
 
