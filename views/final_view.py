@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from icalendar import Calendar, Event
 import pytz
 from database import get_schedule
+from api_logic.gemini_api import process_with_gemini
 
 def parse_schedule(text):
     """
@@ -117,58 +118,77 @@ def create_ics_bytes(courses):
     return cal.to_ical()
 
 def final_view_page():
-    """
-    Streamlit page: Displays the final schedule to the user and allows .ics calendar download.
-
-    - Shows the AI-generated semester schedule.
-    - Provides download functionality as a calendar file (.ics).
-    - Allows user to return to home screen.
-    """
     st.title("🎓 Your Personalized Semester Plan is Ready!")
     st.write("""
         Congratulations! 🎉
 
         Your custom semester schedule has been generated based on your preferences, degree requirements, and academic history.
         
-        Here is your recommended schedule:""")
-    
-    # Retrieve schedule for the logged-in user
-    schedule = get_schedule(st.session_state.get("user_id"))
-
-    # Display raw schedule in a styled code block
-    st.markdown(
-        f"""
-        <div style="background-color:#c0c0c0; padding:16px; border-radius:8px; margin-bottom:16px;">
-            <pre style="font-size: 1.1em; color: black !important;">{schedule}</pre>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Additional information and guidance
-    st.write("""   
-        **What’s next?**
-        - Review your recommended courses and schedule below.
-        - Import this schedule into your calendar.
-
-        We wish you a successful and fulfilling semester ahead!  
-        If you need further assistance, feel free to reach out to your academic advisor.
-
-        _Thank you for using C-Planner!_
+        Below you’ll find your recommended schedule—and a verified, regex‐friendly version to power the calendar export.
     """)
 
-    # Go back button
-    if st.button("⬅️ Go back to home"):
-        st.session_state.page = "session_choice"
+    uid = st.session_state.get("user_id")
+    if not uid:
+        st.error("⚠️ Please sign in again.")
+        return
 
-    # Generate calendar file from schedule
-    courses = parse_schedule(schedule)
-    ics_bytes = create_ics_bytes(courses)
+    # 1) Fetch the raw saved schedule from the DB
+    raw_schedule = get_schedule(uid) or ""
+    if not raw_schedule.strip():
+        st.error("No saved schedule found. Please generate one first.")
+        if st.button("⬅️ Back to Generation"):
+            st.session_state.page = "generation"
+            st.rerun()
+        return
 
-    # Calendar download button
-    st.download_button(
-        label="📥 Import to Calendar",
-        data=ics_bytes,
-        file_name="semester_schedule.ics",
-        mime="text/calendar"
-    )
+    # 2) Show the raw version
+    st.markdown("### Original Schedule Text")
+    st.markdown(f"<pre>{raw_schedule}</pre>", unsafe_allow_html=True)
+
+    # 3) Ask Gemini to reformat strictly for our regex parser
+    with st.spinner("🔍 Verifying & reformatting schedule…"):
+        verify_prompt = f"""
+You are a precise formatter. 
+Take the following schedule and output **only** lines in this exact pattern:
+
+Course Name (DAY TIME-RANGE, Instructor)
+
+- DAY must be a three-letter uppercase abbreviation (e.g. MON, TUE, WED, THU, FRI).
+- Keep each day of the class as a seperate record. Do not write for example MWF or TTH.
+- TIME-RANGE in 12-hour format with am/pm, e.g. 3:30pm-4:20pm.
+- Instructor name after the comma.
+- Do NOT add any extra text, numbering, or bullets—just one course per line.
+
+Schedule to reformat:
+{raw_schedule}
+"""
+        verified = process_with_gemini(verify_prompt).strip()
+
+    # 4) Display the Gemini‐verified version
+    st.markdown("### Reformatted Schedule (for parsing)")
+    st.code(verified)
+
+    # 5) Parse and build the .ics file
+    courses = parse_schedule(verified)
+    if not courses:
+        st.error("Could not parse any courses—please check your schedule format.")
+    else:
+        ics_bytes = create_ics_bytes(courses)
+
+        st.markdown("---")
+        st.download_button(
+            label="📥 Import to Calendar",
+            data=ics_bytes,
+            file_name="semester_schedule.ics",
+            mime="text/calendar"
+        )
+
+        # 6) Navigation
+    st.markdown("---")
+    col1, _ = st.columns(2, gap="small")
+
+    with col1:
+        if st.button("⬅️ Back to home"):
+            st.session_state.page = "session_choice"
+            st.rerun()
+
