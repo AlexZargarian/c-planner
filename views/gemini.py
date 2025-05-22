@@ -1,4 +1,3 @@
-# ─────────────────────────  views/gemini.py  ─────────────────────────
 import io
 from pathlib import Path
 from typing import Dict
@@ -9,9 +8,12 @@ import streamlit as st
 from api_logic.gemini_api import process_pdf_with_gemini
 from database import save_transcript, save_preference, save_degree_requirements
 
+# Directory where degree requirement files are stored
 DEGREE_DIR = Path("data") / "Degree Requirements"
 
-# ─── utility --------------------------------------------------------
+# ──────────────────────────────
+# Utility: Extracts plain text from uploaded PDF
+# ──────────────────────────────
 def extract_text_from_pdf(uploaded_file) -> str:
     try:
         rdr = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
@@ -20,7 +22,9 @@ def extract_text_from_pdf(uploaded_file) -> str:
         st.error(f"PDF-extract error: {e}")
         return ""
 
-# ─── static data ----------------------------------------------------
+# ──────────────────────────────
+# Predefined list of academic programs shown in dropdown
+# ──────────────────────────────
 PROGRAM_OPTIONS = [
     "BA in Business", "BS in Economics", "BA in English and Communications",
     "BA in Politics and Governance", "BS in Computer Science",
@@ -43,21 +47,26 @@ PROGRAM_OPTIONS = [
     "Master of Science in Computer and Information Science",
 ]
 
+# ──────────────────────────────
+# Interview-like questions asked to the user
+# ──────────────────────────────
 QUESTIONS = [
-    "👉 Please upload the PDF version of your official transcript. (Download it from your AUA account: General → Bio → Transcript → Download)",
+    "👉 Please upload the PDF version of your official transcript...",
     "👉 What is your current academic program? (Select from the dropdown)",
-    "👉 Which year of your studies are you currently in? (e.g., First year, Second year, Third year, etc.)",
-    "👉 Are there any specific courses you’re hoping to take this semester? (List them below or click “Skip” ⏭️ if none come to mind.)",
-    "👉 Are there any instructors you'd prefer to avoid? (List their names or click “Skip” ⏭️ if not applicable.)",
-    "👉 Are there any courses you definitely don’t want to take? (List them or press “Skip” ⏭️ if none.)",
-    "👉 What time of day do you prefer having classes? (e.g., Mornings, Afternoons, Evenings)",
+    "👉 Which year of your studies are you currently in? ...",
+    "👉 Are there any specific courses you’re hoping to take this semester?",
+    "👉 Are there any instructors you'd prefer to avoid?",
+    "👉 Are there any courses you definitely don’t want to take?",
+    "👉 What time of day do you prefer having classes?",
     "👉 How many courses would you like to take this semester?",
-    "👉 Do you prefer having classes mostly on MWF (Monday/Wednesday/Friday) or TTH (Tuesday/Thursday)?",
-    "👉 Is there any additional information you’d like to share? If so, please tell us; otherwise, feel free to skip this."
+    "👉 Do you prefer having classes mostly on MWF or TTH?",
+    "👉 Is there any additional information you’d like to share?",
 ]
 TOTAL_Q = len(QUESTIONS)
 
-# ─── dark-friendly widget CSS ---------------------------------------
+# ──────────────────────────────
+# Dark theme overrides for widgets
+# ──────────────────────────────
 CSS = """
 <style>
 textarea, input {
@@ -74,7 +83,9 @@ div[data-testid="stSelectbox"] span{
 </style>
 """
 
-# ─── DB bulk-save helper -------------------------------------------
+# ──────────────────────────────
+# Save all answers from local session into the database
+# ──────────────────────────────
 def _persist_all_answers(uid: str, answers: Dict[int, str]) -> None:
     tr = answers.get(0)
     if tr:
@@ -90,12 +101,17 @@ def _persist_all_answers(uid: str, answers: Dict[int, str]) -> None:
             if fp.exists():
                 save_degree_requirements(uid, txt, fp.read_text("utf-8"))
 
+# ──────────────────────────────
+# Final review page after all questions
+# ──────────────────────────────
 def review_page() -> None:
     s = st.session_state
     skipped = sorted(s.get("skipped", set()))
     saved   = sorted(s.get("saved", set()))
 
     st.header("📋 Review Your Responses")
+
+    # Show skipped questions
     if skipped:
         st.warning("You skipped these questions:")
         st.markdown("\n".join(f"* {QUESTIONS[i]}" for i in skipped))
@@ -103,20 +119,21 @@ def review_page() -> None:
         st.success("All questions answered (or deliberately skipped).")
 
     c1, c2 = st.columns(2, gap="small")
+    
+    # Navigate to first skipped question
     with c1:
         if st.button("🔄 Go to skipped", key="goto_skipped", disabled=not skipped):
             s.current_q = skipped[0]
             st.rerun()
 
+    # Submit all answers to DB
     with c2:
-        # Only offer “Submit All” if there's something new to write
         if saved and not s.get("all_submitted"):
             if st.button("✅ Submit All Responses", key="submit_all"):
                 uid = s.get("user_id")
                 if not uid:
                     st.error("⚠️ Please sign in again.")
                 else:
-                    # Persist exactly the indices in `s.saved`
                     for idx in saved:
                         if idx == 0:
                             tr = s.answers.get(0)
@@ -132,59 +149,57 @@ def review_page() -> None:
                     s.all_submitted = True
                     st.success("🎉 All saved!")
                     st.balloons()
-                    # clear out `saved` so re-submit won’t repeat writes
                     s.saved.clear()
-        # If nothing saved at all, offer the “empty-handed” path
+
         elif not saved and not s.get("all_submitted"):
             if st.button("➡️ Go to Generation (no data)", key="empty_gen"):
                 s.prev_page = "gemini"
-                s.page      = "generation"
+                s.page = "generation"
                 st.rerun()
 
-    # once everything’s in the DB, show the Generation button
+    # After submission, allow transition to generation
     if s.get("all_submitted"):
         st.divider()
         if st.button("➡️ Go to Generation", key="goto_generation"):
             s.prev_page = "gemini"
-            s.page      = "generation"
+            s.page = "generation"
             st.rerun()
 
-
-
-# ─── main page ------------------------------------------------------
+# ──────────────────────────────
+# Main Gemini Questionnaire Page
+# ──────────────────────────────
 def gemini_page() -> None:
     st.markdown(CSS, unsafe_allow_html=True)
     s = st.session_state
 
-    # session defaults
+    # Initialize session state variables
     s.setdefault("current_q", 0)
     s.setdefault("answers",   {})
     s.setdefault("saved",     set())
     s.setdefault("skipped",   set())
     s.setdefault("all_submitted", False)
 
+    # Skip transcript if flagged
     if s.get("skip_transcript") and s.current_q == 0:
         s.current_q = 1
 
-    # review page
+    # If done, go to review
     if s.current_q >= TOTAL_Q:
         review_page()
         return
 
+    # Current question
     idx = s.current_q
     readonly = idx in s.saved
     key = f"A_{idx}"
 
     st.write(f"### {QUESTIONS[idx]}")
 
-    # ------------- input widgets ------------------------------------
+    # Question 0: Upload transcript
     if idx == 0 and not s.get("skip_transcript"):
-        # === TRANSCRIPT PAGE ========================================
         if readonly:
-            # Already saved → show confirmation, hide uploader
             st.success("Transcript uploaded ✅")
         else:
-            # Uploader visible until the user hits Save
             def _on_upload():
                 file = s.uploaded_file
                 if file:
@@ -200,8 +215,6 @@ def gemini_page() -> None:
                 key="uploaded_file",
                 on_change=_on_upload,
             )
-
-        # Textarea (read-only if transcript already saved)
         s.answers[0] = st.text_area(
             "Your classes (edit if needed):",
             value=s.answers.get(0, ""),
@@ -210,8 +223,8 @@ def gemini_page() -> None:
             disabled=readonly,
         )
 
+    # Question 1: Program dropdown
     elif idx == 1:
-        # === PROGRAM DROPDOWN =======================================
         if readonly:
             st.write(f"**{s.answers[1] or '_(skipped)_'}**")
         else:
@@ -222,8 +235,9 @@ def gemini_page() -> None:
                 ) if s.answers.get(1) else 0,
                 key=key,
             )
+
+    # All other questions: Text input
     else:
-        # === OPEN-ENDED QUESTIONS ===================================
         if readonly:
             st.write(s.answers.get(idx) or "_(skipped)_")
         else:
@@ -233,10 +247,10 @@ def gemini_page() -> None:
                 key=key,
             )
 
-    # ------------- navigation bar (unchanged) -----------------------
+    # Navigation buttons
     back, save_col, next_col, change, skip = st.columns(5, gap="small")
 
-    # BACK
+    # Back button
     with back:
         if st.button("⬅️ Back", key=f"back_{idx}"):
             if idx == 0:
@@ -250,7 +264,7 @@ def gemini_page() -> None:
                     s.current_q -= 1
             st.rerun()
 
-    # SAVE  (validation for open-ended questions)
+    # Save answer
     with save_col:
         if not readonly and st.button("💾 Save", key=f"save_{idx}"):
             if idx >= 2 and not s.answers.get(idx, "").strip():
@@ -262,21 +276,21 @@ def gemini_page() -> None:
                 st.success("Saved!")
                 st.rerun()
 
-    # NEXT  (enabled only if saved)
+    # Next question
     with next_col:
         disabled_next = idx not in s.saved
         if st.button("➡️ Next", key=f"next_{idx}", disabled=disabled_next):
             s.current_q += 1
             st.rerun()
 
-    # CHANGE
+    # Edit saved answer
     with change:
         if readonly and st.button("✏️ Change", key=f"chg_{idx}"):
             s.saved.discard(idx)
             s.all_submitted = False
             st.rerun()
 
-    # SKIP
+    # Skip question
     with skip:
         if idx != 0 and not readonly and st.button("⏭️ Skip", key=f"skip_{idx}"):
             s.answers.pop(idx, None)
