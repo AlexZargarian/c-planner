@@ -6,13 +6,26 @@ import pytz
 from database import get_schedule
 
 def parse_schedule(text):
+    """
+    Parses the AI-generated schedule string into structured course data.
+
+    Args:
+        text (str): Schedule string containing course names, meeting days/times, and instructors.
+
+    Returns:
+        list: A list of dictionaries, each containing:
+            - name (str): Course name.
+            - sessions (list): List of tuples (day, time_range).
+            - instructor (str): Instructor's name.
+    """
     courses = []
     lines = text.strip().split('\n')
 
     for line in lines:
         if not line.strip():
-            continue
+            continue  # Skip empty lines
 
+        # Match pattern: Course Name (MON 3:30pm-4:20pm, Instructor Name)
         match = re.match(r'(.+?)\s\((.+?)\)', line)
         if not match:
             continue
@@ -24,12 +37,11 @@ def parse_schedule(text):
         instructor = ""
 
         for part in parts:
-            # Day + Time e.g. MON 3:30pm-4:20pm
-            if re.match(r'^[A-Z]{3}', part):
+            if re.match(r'^[A-Z]{3}', part):  # It's a day/time session
                 day, time = part.split(' ', 1)
                 sessions.append((day.upper(), time))
             else:
-                instructor = part
+                instructor = part  # Remaining part is instructor
 
         courses.append({
             "name": name.strip(),
@@ -40,6 +52,18 @@ def parse_schedule(text):
     return courses
 
 def time_str_to_datetime(time_str, day):
+    """
+    Converts a time range string and day abbreviation to datetime objects for the upcoming week.
+
+    Args:
+        time_str (str): Time range (e.g., '3:30pm-4:20pm').
+        day (str): Three-letter day abbreviation (e.g., 'MON').
+
+    Returns:
+        tuple: A tuple containing:
+            - start_datetime (datetime): Start time.
+            - end_datetime (datetime): End time.
+    """
     day_map = {
         'MON': 0, 'TUE': 1, 'WED': 2,
         'THU': 3, 'FRI': 4, 'SAT': 5, 'SUN': 6
@@ -51,6 +75,7 @@ def time_str_to_datetime(time_str, day):
     end_dt = datetime.strptime(end_time.strip().lower(), dt_format)
 
     today = datetime.today()
+    # Calculate the next occurrence of the given day
     start_date = today + timedelta(days=(day_map[day] - today.weekday()) % 7)
     start_datetime = datetime.combine(start_date.date(), start_dt.time())
     end_datetime = datetime.combine(start_date.date(), end_dt.time())
@@ -58,6 +83,15 @@ def time_str_to_datetime(time_str, day):
     return start_datetime, end_datetime
 
 def create_ics_bytes(courses):
+    """
+    Creates an .ics calendar file in byte format from a list of structured courses.
+
+    Args:
+        courses (list): List of dictionaries with keys 'name', 'sessions', and 'instructor'.
+
+    Returns:
+        bytes: Byte representation of the calendar file (.ics format).
+    """
     cal = Calendar()
     cal.add('prodid', '-//University Course Planner//Gemini AI//')
     cal.add('version', '2.0')
@@ -67,6 +101,7 @@ def create_ics_bytes(courses):
     for course in courses:
         for day, time in course['sessions']:
             start_dt, end_dt = time_str_to_datetime(time, day)
+
             event = Event()
             event.add('summary', course['name'])
             event.add('description', f"Instructor: {course['instructor']}")
@@ -79,6 +114,13 @@ def create_ics_bytes(courses):
     return cal.to_ical()
 
 def final_view_page():
+    """
+    Streamlit page: Displays the final schedule to the user and allows .ics calendar download.
+
+    - Shows the AI-generated semester schedule.
+    - Provides download functionality as a calendar file (.ics).
+    - Allows user to return to home screen.
+    """
     st.title("🎓 Your Personalized Semester Plan is Ready!")
     st.write("""
         Congratulations! 🎉
@@ -87,7 +129,10 @@ def final_view_page():
         
         Here is your recommended schedule:""")
     
+    # Retrieve schedule for the logged-in user
     schedule = get_schedule(st.session_state.get("user_id"))
+
+    # Display raw schedule in a styled code block
     st.markdown(
         f"""
         <div style="background-color:#c0c0c0; padding:16px; border-radius:8px; margin-bottom:16px;">
@@ -97,6 +142,7 @@ def final_view_page():
         unsafe_allow_html=True
     )
 
+    # Additional information and guidance
     st.write("""   
         **What’s next?**
         - Review your recommended courses and schedule below.
@@ -108,13 +154,15 @@ def final_view_page():
         _Thank you for using C-Planner!_
     """)
 
+    # Go back button
     if st.button("⬅️ Go back to home"):
         st.session_state.page = "session_choice"
 
-    # Create a downloadable ICS file from the schedule text
+    # Generate calendar file from schedule
     courses = parse_schedule(schedule)
     ics_bytes = create_ics_bytes(courses)
 
+    # Calendar download button
     st.download_button(
         label="📥 Import to Calendar",
         data=ics_bytes,
